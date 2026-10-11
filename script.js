@@ -41,14 +41,14 @@ const CATEGORIES = [
 ];
 
 function loadState() {
-  // Ascolta i cambiamenti in tempo reale dal database
+  // Ascolta i cambiamenti in tempo reale dal database Firebase
   appDataRef.on(
     "value",
     (snapshot) => {
       const saved = snapshot.val();
       if (saved) {
         state = saved;
-        migrateState(); // Mantiene la tua logica di migrazione esistente
+        migrateState(); // Mantiene la compatibilità con i vecchi backup
         renderAll();
       } else {
         // Se il database è vuoto (prima volta assoluta), salva lo stato iniziale
@@ -57,6 +57,9 @@ function loadState() {
     },
     (error) => {
       console.error("Errore nel caricamento da Firebase:", error);
+      alert(
+        "Errore di connessione al database. Controlla la tua connessione internet.",
+      );
     },
   );
 }
@@ -90,15 +93,15 @@ function migrateState() {
 }
 
 function saveState() {
-  // Salva lo stato su Firebase invece che nel localStorage
+  // Salva lo stato su Firebase in tempo reale
   appDataRef
     .set(state)
     .then(() => {
-      console.log("Dati sincronizzati con successo");
+      // Salvataggio riuscito (silenzioso, non serve alert)
     })
     .catch((error) => {
       console.error("Errore nel salvataggio su Firebase:", error);
-      alert("Errore di connessione. Controlla internet.");
+      alert("Errore di salvataggio. Controlla la connessione internet.");
     });
 }
 
