@@ -1,2844 +1,447 @@
 <!doctype html>
 <html lang="it">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lista della Spesa</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        />
+        <title>Lista della Spesa</title>
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+        <div class="container">
+            <header class="header">
+                <h1>🛒 Lista della Spesa</h1>
+                <div class="supermarket-selector">
+                    <label for="currentSupermarket">Supermercato:</label>
+                    <select id="currentSupermarket">
+                        <option value="">Nessun supermercato</option>
+                    </select>
+                    <div class="supermarket-logo-box" id="supermarketLogoBox">
+                        <span class="supermarket-logo-placeholder">🏪</span>
+                    </div>
+                </div>
+            </header>
 
-    :root {
-      --bg: #faf7f2;
-      --surface: #fff;
-      --ink: #1a1208;
-      --soft: #7a6e5f;
-      --accent: #2e8b57;
-      --accent-l: #f5e6dc;
-      --line: #ede8e0;
-      --chk-bg: #f0ece6;
-      --chk-ink: #b0a899;
-      --taken: #6c757d;
-      --taken-l: #e9ecef;
-      --taken-li: #e1bee7;
-      --products-li: #fff3e0;
-      --r: 14px;
-      --sh: 0 2px 12px rgba(26, 18, 8, 0.07);
-    }
-
-    html, body { width: 100%; overflow-x: hidden; }
-
-    body {
-      font-family: "DM Sans", sans-serif;
-      background: var(--bg);
-      min-height: 100vh;
-      padding: 28px 16px 90px;
-      color: var(--ink);
-      -webkit-text-size-adjust: 100%;
-    }
-
-    .wrap { max-width: 1000px; margin: 0 auto; }
-
-    .sync-bar {
-      display: flex; align-items: center; gap: 6px;
-      font-size: 0.72rem; color: var(--soft); margin-bottom: 14px;
-    }
-    .sync-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: #ccc; flex-shrink: 0; transition: background 0.3s;
-    }
-    .sync-dot.online { background: #4caf50; }
-    .sync-dot.offline { background: #f44336; }
-    .sync-dot.syncing { background: #ff9800; animation: pulse 0.8s infinite alternate; }
-    @keyframes pulse { from { opacity: 1; } to { opacity: 0.3; } }
-
-    .hdr { margin-bottom: 24px; }
-    .hdr-top {
-      display: flex; align-items: flex-start; justify-content: space-between;
-      gap: 10px; flex-wrap: wrap;
-    }
-    .hdr-right {
-      display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
-    }
-    h1 {
-      font-family: "Playfair Display", serif;
-      font-size: 2rem; line-height: 1.1; letter-spacing: -0.5px;
-    }
-    h1 em { font-style: normal; color: var(--accent); }
-    .sub { margin-top: 5px; font-size: 0.83rem; color: var(--soft); font-weight: 300; }
-
-    .supermarket-selector {
-      display: flex; align-items: center; gap: 10px;
-      background: var(--surface);
-      border: 1.5px solid var(--line);
-      border-radius: var(--r);
-      padding: 8px 12px;
-      box-shadow: var(--sh);
-    }
-    .supermarket-selector select {
-      font-family: "DM Sans", sans-serif;
-      font-size: 0.9rem; font-weight: 500;
-      color: var(--ink);
-      background: transparent;
-      border: none;
-      outline: none;
-      cursor: pointer;
-      min-width: 150px;
-    }
-    .supermarket-logo {
-      width: 24px; height: 24px;
-      object-fit: contain;
-      border-radius: 4px;
-    }
-
-    /* NUOVO: Totale compatto nell'header */
-    .header-total {
-      font-family: "DM Sans", sans-serif;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--accent);
-      background: var(--surface);
-      border: 1.5px solid var(--accent);
-      padding: 6px 12px;
-      border-radius: 20px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      box-shadow: var(--sh);
-    }
-    .header-total span {
-      font-family: "DM Sans", sans-serif;
-      font-size: 0.85rem;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-
-    .list-selector {
-      display: flex; gap: 8px; align-items: center;
-      margin-bottom: 16px; flex-wrap: wrap;
-    }
-    .list-selector select {
-      flex: 1; min-width: 140px;
-      font-family: "DM Sans", sans-serif;
-      font-size: 0.95rem; font-weight: 500; color: var(--ink);
-      background: var(--surface); border: 1.5px solid var(--line);
-      border-radius: var(--r); padding: 10px 12px;
-      box-shadow: var(--sh); cursor: pointer;
-      -webkit-appearance: none; appearance: none;
-      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237a6e5f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-      background-repeat: no-repeat;
-      background-position: right 10px center;
-      background-size: 16px;
-      padding-right: 34px;
-    }
-    .list-actions { display: flex; gap: 6px; }
-    .list-btn {
-      width: 40px; height: 40px; flex-shrink: 0;
-      background: var(--surface); color: var(--soft);
-      border: 1.5px solid var(--line); border-radius: 10px;
-      font-size: 1rem; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: var(--sh);
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation; -webkit-appearance: none;
-      transition: all 0.15s;
-    }
-    .list-btn:hover { color: var(--accent); border-color: var(--accent); }
-    .list-btn.add {
-      background: var(--accent); color: #fff;
-      border-color: var(--accent); font-size: 1.3rem; font-weight: 300;
-    }
-    .list-btn.add:hover { background: #267349; }
-
-    .input-area { display: flex; flex-direction: column; gap: 8px; margin-bottom: 22px; }
-    .row1 {
-      display: flex; align-items: center;
-      background: var(--surface); border: 1.5px solid var(--line);
-      border-radius: var(--r); padding: 2px 2px 2px 14px;
-      box-shadow: var(--sh);
-      position: relative;
-    }
-    .row1:focus-within { border-color: var(--accent); }
-    .input-wrapper { position: relative; flex: 1; min-width: 0; }
-    #itemInput {
-      flex: 1; min-width: 0; border: none; outline: none; background: transparent;
-      font-family: "DM Sans", sans-serif; font-size: 1rem; color: var(--ink);
-      padding: 10px 0; -webkit-appearance: none;
-    }
-    #itemInput::placeholder { color: #c0b8ad; }
-    .input-small {
-      width: 70px; flex-shrink: 0;
-      border: none; border-left: 1.5px solid var(--line); outline: none;
-      background: transparent;
-      font-family: "DM Sans", sans-serif; font-size: 0.88rem; color: var(--soft);
-      padding: 10px 6px; text-align: center; -webkit-appearance: none;
-    }
-    .row2 { display: flex; gap: 8px; }
-    #catSelect {
-      flex: 1; min-width: 0;
-      font-family: "DM Sans", sans-serif; font-size: 0.88rem; color: var(--soft);
-      background: var(--surface); border: 1.5px solid var(--line);
-      border-radius: var(--r); padding: 11px 10px;
-      box-shadow: var(--sh); cursor: pointer;
-    }
-    #addBtn {
-      width: 52px; height: 52px; flex-shrink: 0;
-      background: var(--accent); color: #fff; border: none; border-radius: var(--r);
-      font-size: 1.7rem; line-height: 1;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation; -webkit-appearance: none; appearance: none; padding: 0;
-    }
-
-    .filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
-    .fbtn {
-      font-family: "DM Sans", sans-serif; font-size: 0.76rem; font-weight: 500;
-      padding: 6px 13px; border-radius: 20px;
-      border: 1.5px solid var(--line); background: var(--surface); color: var(--soft);
-      cursor: pointer; white-space: nowrap;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation; -webkit-appearance: none;
-    }
-    .fbtn.on { border-color: var(--accent); color: var(--accent); background: var(--accent-l); }
-
-    .list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
-    .item {
-      background: var(--surface); border: 1.5px solid var(--line);
-      border-radius: var(--r); padding: 12px;
-      display: flex; align-items: center; gap: 12px;
-      box-shadow: var(--sh); transition: opacity 0.3s, transform 0.3s;
-    }
-    .item.fading { opacity: 0; transform: translateX(30px); }
-    .item.done { background: var(--chk-bg); border-color: #e0d9cf; }
-    .item.taken { background: var(--taken-l); border-color: #d5dbe0; opacity: 0.85; }
-    .item.taken .iname { color: var(--taken); }
-    .chk {
-      width: 28px; height: 28px; flex-shrink: 0;
-      border: 2px solid #d4cec6; border-radius: 8px; background: #fff;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      font-size: 15px; color: transparent;
-      -webkit-tap-highlight-color: transparent; touch-action: manipulation;
-      transition: background 0.15s, border-color 0.15s;
-      -webkit-appearance: none; appearance: none;
-    }
-    .item.done .chk { background: var(--accent); border-color: var(--accent); color: #fff; }
-    .ibody { flex: 1; min-width: 0; cursor: pointer; }
-    .ibody:hover .iname { color: var(--accent); }
-    .iname {
-      font-size: 0.94rem; color: var(--ink);
-      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-      transition: color 0.15s;
-    }
-    .item.done .iname { color: var(--chk-ink); text-decoration: line-through; }
-    .imeta {
-      font-size: 0.73rem; color: var(--soft);
-      margin-top: 3px; display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
-    }
-    .price-tag { font-family: "DM Sans", sans-serif; font-weight: 600; color: var(--accent); font-size: 0.85rem; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-    .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-    .del {
-      background: none; border: none; color: #ccc;
-      font-size: 1.1rem; padding: 6px; border-radius: 6px;
-      cursor: pointer; line-height: 1; flex-shrink: 0;
-      -webkit-tap-highlight-color: transparent; touch-action: manipulation; -webkit-appearance: none;
-    }
-    .edit-btn {
-      background: none; border: none; color: #bbb;
-      font-size: 0.95rem; padding: 6px; border-radius: 6px;
-      cursor: pointer; line-height: 1; flex-shrink: 0;
-      -webkit-tap-highlight-color: transparent; touch-action: manipulation; -webkit-appearance: none;
-    }
-    .edit-btn:hover { color: var(--accent); }
-
-    .restore-btn, .to-products-btn {
-      background: none; border: none; color: #999;
-      font-size: 0.85rem; padding: 6px 8px; border-radius: 6px;
-      cursor: pointer; line-height: 1; flex-shrink: 0;
-      -webkit-tap-highlight-color: transparent; touch-action: manipulation; -webkit-appearance: none;
-    }
-    .restore-btn:hover, .to-products-btn:hover { color: var(--accent); }
-    .to-products-btn:hover { color: #ff9800; }
-
-    .taken-section, .products-section {
-      margin-top: 22px; background: var(--surface);
-      border: 1.5px solid var(--line); border-radius: var(--r);
-      box-shadow: var(--sh); overflow: hidden; transition: max-height 0.3s ease;
-    }
-    .taken-header, .products-header {
-      padding: 14px 16px; display: flex; align-items: center; justify-content: space-between;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent; user-select: none;
-    }
-    .taken-header { background: var(--taken-li); }
-    .products-header { background: var(--products-li); }
-    .taken-header h3, .products-header h3 {
-      font-family: "DM Sans", sans-serif; font-size: 0.95rem; font-weight: 500;
-      color: var(--ink); display: flex; align-items: center; gap: 8px;
-    }
-    .taken-count, .products-count {
-      background: var(--taken); color: #fff;
-      font-size: 0.7rem; font-weight: 500; padding: 2px 8px; border-radius: 12px;
-    }
-    .products-count { background: #ff9800; }
-    .taken-toggle, .products-toggle { font-size: 0.8rem; color: var(--soft); transition: transform 0.2s; }
-    .taken-section.collapsed .taken-toggle,
-    .products-section.collapsed .products-toggle { transform: rotate(-90deg); }
-    .taken-body, .products-body {
-      padding: 16px; max-height: 60vh; overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      transition: max-height 0.3s, padding 0.3s;
-    }
-    .taken-section.collapsed .taken-body,
-    .products-section.collapsed .products-body { max-height: 0; padding-top: 0; padding-bottom: 0; overflow: hidden; }
-    .taken-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
-    .taken-list .item { background: var(--taken-l); border-color: #d5dbe0; padding: 10px 12px; }
-    .taken-list .iname { color: var(--taken); }
-    .taken-empty, .products-empty { text-align: center; padding: 20px; color: var(--soft); font-size: 0.85rem; font-style: italic; }
-    .taken-actions {
-      display: flex; gap: 8px; margin-top: 12px;
-      padding-top: 12px; border-top: 1px solid var(--line);
-    }
-    .taken-btn {
-      flex: 1; font-family: "DM Sans", sans-serif; font-size: 0.8rem; font-weight: 500;
-      padding: 8px 12px; border-radius: 8px; border: 1.5px solid var(--line);
-      background: var(--surface); color: var(--soft); cursor: pointer; text-align: center;
-      -webkit-tap-highlight-color: transparent; touch-action: manipulation; -webkit-appearance: none;
-    }
-    .taken-btn:hover { color: var(--accent); border-color: var(--accent); }
-    .taken-btn.danger:hover { color: #e53935; border-color: #e53935; }
-
-    .settings-section {
-      margin-top: 22px;
-      background: var(--surface);
-      border: 1.5px solid var(--line);
-      border-radius: var(--r);
-      box-shadow: var(--sh);
-      overflow: hidden;
-    }
-    .settings-header {
-      padding: 14px 16px;
-      background: var(--bg);
-      border-bottom: 1.5px solid var(--line);
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: space-between;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-    }
-    .settings-header h3 {
-      font-family: "DM Sans", sans-serif;
-      font-size: 0.95rem; font-weight: 500; color: var(--ink);
-      display: flex; align-items: center; gap: 8px;
-    }
-    .settings-toggle { font-size: 0.8rem; color: var(--soft); transition: transform 0.2s; }
-    .settings-section.collapsed .settings-toggle { transform: rotate(-90deg); }
-    .settings-body { padding: 16px; }
-    .settings-section.collapsed .settings-body { display: none; }
-
-    .settings-block {
-      margin-bottom: 20px; padding-bottom: 20px;
-      border-bottom: 1.5px solid var(--line);
-    }
-    .settings-block:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-    .settings-block-title {
-      font-family: "DM Sans", sans-serif;
-      font-size: 0.85rem; font-weight: 600; color: var(--ink);
-      margin-bottom: 12px; text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    
-    .supermarket-form, .product-form { display: flex; flex-direction: column; gap: 12px; }
-    .form-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    .form-row input, .form-row select {
-      flex: 1; min-width: 120px;
-      font-family: "DM Sans", sans-serif;
-      font-size: 0.9rem; color: var(--ink);
-      background: var(--bg); border: 1.5px solid var(--line);
-      border-radius: 10px; padding: 10px 12px;
-    }
-    .form-row input:focus, .form-row select:focus { outline: none; border-color: var(--accent); }
-    .btn-primary {
-      background: var(--accent); color: #fff;
-      border: none; border-radius: 10px;
-      padding: 10px 20px;
-      font-family: "DM Sans", sans-serif;
-      font-size: 0.9rem; font-weight: 500;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-    }
-    .btn-primary:hover { background: #267349; }
-    .btn-primary.orange { background: #ff9800; }
-    .btn-primary.orange:hover { background: #f57c00; }
-    
-    .supermarkets-list, .products-list { display: flex; flex-direction: column; gap: 10px; }
-    .supermarket-item, .product-item {
-      background: var(--bg); border: 1.5px solid var(--line);
-      border-radius: 10px; padding: 12px;
-    }
-    .supermarket-item.editing, .product-item.editing { padding: 12px; }
-    .supermarket-item-main, .product-item-main {
-      display: flex; align-items: center; gap: 12px;
-    }
-    .supermarket-item-logo, .product-item-logo {
-      width: 40px; height: 40px;
-      object-fit: contain;
-      border-radius: 6px;
-      background: #fff;
-      padding: 4px;
-      flex-shrink: 0;
-    }
-    .supermarket-item-info, .product-item-info { flex: 1; min-width: 0; }
-    .supermarket-item-name, .product-item-name { font-weight: 600; color: var(--ink); font-size: 0.95rem; }
-    .product-item-cat { font-size: 0.75rem; color: var(--soft); margin-top: 2px; }
-    .supermarket-item-actions, .product-item-actions { display: flex; gap: 6px; flex-shrink: 0; }
-    .btn-icon {
-      width: 32px; height: 32px;
-      border: none; border-radius: 6px;
-      background: var(--surface);
-      color: var(--soft);
-      cursor: pointer;
-      font-size: 1rem;
-      display: flex; align-items: center; justify-content: center;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-    }
-    .btn-icon:hover { color: var(--accent); background: var(--accent-l); }
-    .btn-icon.delete:hover { color: #e53935; background: #ffebee; }
-    .btn-icon.add-to-list:hover { color: #ff9800; background: #fff3e0; }
-
-    .product-item-main {
-      cursor: pointer;
-      user-select: none;
-    }
-    .product-expand-indicator {
-      color: var(--soft);
-      font-size: 0.8rem;
-      transition: transform 0.2s;
-      margin-left: 4px;
-    }
-    .product-item.expanded .product-expand-indicator {
-      transform: rotate(90deg);
-    }
-    
-    .product-prices {
-      margin-top: 12px; padding-top: 12px;
-      border-top: 1px dashed var(--line);
-      display: flex; flex-direction: column; gap: 8px;
-      animation: slideDown 0.2s ease;
-    }
-    @keyframes slideDown {
-      from { opacity: 0; max-height: 0; }
-      to { opacity: 1; max-height: 500px; }
-    }
-    .product-item:not(.expanded) .product-prices {
-      display: none;
-    }
-    .price-row {
-      display: flex; align-items: center; gap: 10px;
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 8px 10px;
-    }
-    .price-row-logo {
-      width: 28px; height: 28px;
-      object-fit: contain;
-      border-radius: 4px;
-      background: var(--bg);
-      padding: 2px;
-      flex-shrink: 0;
-    }
-    .price-row-name {
-      flex: 1; min-width: 0;
-      font-size: 0.85rem; font-weight: 500; color: var(--ink);
-      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    }
-    .price-input-wrapper {
-      display: flex; align-items: center;
-      background: var(--bg);
-      border: 1.5px solid var(--line);
-      border-radius: 6px;
-      padding: 0 8px;
-      flex-shrink: 0;
-      transition: border-color 0.15s;
-    }
-    .price-input-wrapper:focus-within {
-      border-color: var(--accent);
-    }
-    .price-input-symbol {
-      color: var(--accent);
-      font-weight: 600;
-      font-size: 0.9rem;
-      margin-right: 4px;
-      user-select: none;
-    }
-    .price-row-input {
-      width: 70px;
-      font-family: "DM Sans", sans-serif;
-      font-size: 0.9rem; font-weight: 600; color: var(--accent);
-      background: transparent;
-      border: none;
-      outline: none;
-      padding: 6px 0;
-      text-align: right;
-    }
-    .no-sm-hint {
-      font-size: 0.8rem; color: var(--soft);
-      font-style: italic; text-align: center;
-      padding: 8px;
-    }
-
-    .products-toolbar {
-      display: flex; flex-direction: column; gap: 10px;
-      margin-bottom: 16px; padding-bottom: 16px;
-      border-bottom: 1.5px solid var(--line);
-    }
-    .products-search {
-      display: flex; align-items: center;
-      background: var(--bg); border: 1.5px solid var(--line);
-      border-radius: 10px; padding: 2px 2px 2px 12px;
-    }
-    .products-search:focus-within { border-color: var(--accent); }
-    .products-search input {
-      flex: 1; min-width: 0; border: none; outline: none; background: transparent;
-      font-family: "DM Sans", sans-serif; font-size: 0.9rem; color: var(--ink);
-      padding: 9px 0;
-    }
-    .products-search input::placeholder { color: #c0b8ad; }
-    .products-search-clear {
-      background: none; border: none; color: var(--soft);
-      font-size: 1rem; padding: 6px 10px; cursor: pointer;
-      border-radius: 6px;
-    }
-    .products-search-clear:hover { color: var(--accent); background: var(--accent-l); }
-
-    .edit-form {
-      display: flex; flex-direction: column; gap: 6px; padding: 10px 0 2px;
-    }
-    .edit-row {
-      display: flex; align-items: center;
-      background: var(--bg); border: 1.5px solid var(--line);
-      border-radius: 10px; padding: 2px 2px 2px 10px;
-    }
-    .edit-row:focus-within { border-color: var(--accent); }
-    .edit-name {
-      flex: 1; min-width: 0; border: none; outline: none; background: transparent;
-      font-family: "DM Sans", sans-serif; font-size: 0.9rem; color: var(--ink); padding: 7px 0;
-    }
-    .edit-qty {
-      width: 54px; flex-shrink: 0; border: none; border-left: 1.5px solid var(--line); outline: none;
-      background: transparent; font-family: "DM Sans", sans-serif;
-      font-size: 0.85rem; color: var(--soft); padding: 7px 6px; text-align: center;
-    }
-    .edit-cat {
-      width: 100%; font-family: "DM Sans", sans-serif; font-size: 0.85rem; color: var(--soft);
-      background: var(--bg); border: 1.5px solid var(--line);
-      border-radius: 10px; padding: 8px 10px; cursor: pointer;
-    }
-    .edit-actions { display: flex; gap: 6px; }
-    .edit-save, .edit-cancel {
-      flex: 1; padding: 8px; border-radius: 8px; border: none;
-      font-family: "DM Sans", sans-serif; font-size: 0.83rem; font-weight: 500;
-      cursor: pointer; -webkit-appearance: none;
-    }
-    .edit-save { background: var(--accent); color: #fff; }
-    .edit-cancel { background: var(--line); color: var(--soft); }
-
-    .io-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
-    .io-btn {
-      flex: 1; min-width: 140px;
-      font-family: "DM Sans", sans-serif;
-      font-size: 0.85rem; font-weight: 500;
-      padding: 12px 16px;
-      border-radius: 10px;
-      border: 1.5px solid var(--line);
-      background: var(--surface);
-      color: var(--soft);
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-      transition: all 0.15s;
-    }
-    .io-btn:hover { color: var(--accent); border-color: var(--accent); }
-    .io-btn.export { border-color: var(--accent); color: var(--accent); }
-    .io-btn.export:hover { background: var(--accent); color: #fff; }
-    .io-btn.import { border-color: #ff9800; color: #ff9800; }
-    .io-btn.import:hover { background: #ff9800; color: #fff; }
-    #importFileInput { display: none; }
-
-    .empty { text-align: center; padding: 48px 16px; color: var(--soft); }
-    .empty .ico { font-size: 2.8rem; margin-bottom: 10px; }
-    .empty p { font-size: 0.88rem; font-weight: 300; }
-
-    .ftr { margin-top: 22px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-    .abtn {
-      font-family: "DM Sans", sans-serif; font-size: 0.8rem; font-weight: 500;
-      padding: 12px 6px; border-radius: 10px; border: 1.5px solid var(--line);
-      background: var(--surface); color: var(--soft); cursor: pointer; text-align: center;
-      display: flex; align-items: center; justify-content: center; gap: 5px;
-      -webkit-tap-highlight-color: transparent; touch-action: manipulation; -webkit-appearance: none; appearance: none;
-    }
-    .abtn.wide { grid-column: span 3; margin-top: 4px; }
-    .abtn.primary { background: var(--accent); color: #fff; border-color: var(--accent); font-size: 0.9rem; }
-    .abtn.on { background: var(--accent-l); color: var(--accent); border-color: var(--accent); }
-
-    .toast {
-      position: fixed; bottom: 22px; left: 50%;
-      transform: translateX(-50%) translateY(16px);
-      background: rgba(26, 18, 8, 0.9); color: #fff;
-      font-family: "DM Sans", sans-serif; font-size: 0.83rem;
-      padding: 9px 18px; border-radius: 30px;
-      opacity: 0; pointer-events: none; white-space: nowrap; z-index: 999;
-      transition: opacity 0.22s, transform 0.22s;
-    }
-    .toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-    .suggestions-dropdown {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      background: var(--surface);
-      border: 1.5px solid var(--accent);
-      border-top: none;
-      border-radius: 0 0 var(--r) var(--r);
-      box-shadow: 0 8px 20px rgba(26, 18, 8, 0.15);
-      max-height: 280px;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      z-index: 100;
-      display: none;
-    }
-    .suggestions-dropdown.show { display: block; }
-    .suggestion-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
-      cursor: pointer;
-      border-bottom: 1px solid var(--line);
-      transition: background 0.1s;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .suggestion-item:last-child { border-bottom: none; }
-    .suggestion-item:hover, .suggestion-item.active {
-      background: var(--accent-l);
-    }
-    .suggestion-icon {
-      font-size: 1.2rem;
-      flex-shrink: 0;
-      width: 28px;
-      height: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--bg);
-      border-radius: 6px;
-    }
-    .suggestion-info {
-      flex: 1;
-      min-width: 0;
-    }
-    .suggestion-name {
-      font-size: 0.9rem;
-      font-weight: 500;
-      color: var(--ink);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .suggestion-meta {
-      font-size: 0.72rem;
-      color: var(--soft);
-      margin-top: 2px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      flex-wrap: wrap;
-    }
-    .suggestion-price {
-      font-family: "DM Sans", sans-serif;
-      font-weight: 600;
-      color: var(--accent);
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-    .suggestion-source {
-      font-size: 0.65rem;
-      padding: 1px 6px;
-      border-radius: 8px;
-      background: var(--line);
-      color: var(--soft);
-      font-weight: 500;
-    }
-    .suggestion-source.catalog {
-      background: #fff3e0;
-      color: #ff9800;
-    }
-    .suggestion-source.taken {
-      background: #e1bee7;
-      color: #9c27b0;
-    }
-
-    @media print {
-      .input-area, .filters, .ftr, .del, .toast, .sync-bar, .list-selector,
-      .taken-section, .products-section, .edit-btn, .restore-btn, .settings-section, .header-total, .suggestions-dropdown {
-        display: none !important;
-      }
-      .item { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; margin-bottom: 3px; }
-      .wrap { max-width: 100%; }
-      h1 { font-size: 1.5rem; }
-      body { padding: 16px; }
-    }
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <div class="sync-bar">
-      <div class="sync-dot" id="syncDot"></div>
-      <span id="syncLabel">Connessione…</span>
-    </div>
-
-    <header class="hdr">
-      <div class="hdr-top">
-        <h1>Lista della spesa</h1>
-        <div class="hdr-right">
-          <div class="supermarket-selector">
-            <img id="headerSupermarketLogo" class="supermarket-logo" src="" alt="" style="display:none;">
-            <select id="supermarketSelect">
-              <option value="">Nessun supermercato</option>
-            </select>
-          </div>
-          <!-- NUOVO: Totale compatto nell'header -->
-          <div class="header-total" id="headerTotal" style="display:none;">
-            Totale: <span id="headerTotalAmount">€0.00</span>
-          </div>
-        </div>
-      </div>
-      <p class="sub" id="sub">Inizia ad aggiungere i tuoi articoli</p>
-    </header>
-
-    <div class="list-selector">
-      <select id="listSelect"></select>
-      <div class="list-actions">
-        <button class="list-btn" id="btnRename" type="button" title="Rinomina lista">✏️</button>
-        <button class="list-btn" id="btnDeleteList" type="button" title="Elimina lista">🗑</button>
-        <button class="list-btn add" id="btnNewList" type="button" title="Nuova lista">+</button>
-      </div>
-    </div>
-
-    <div class="input-area">
-      <div class="row1">
-        <div class="input-wrapper">
-          <input id="itemInput" type="text" placeholder="Es. Parmigiano, Pasta, Latte…" autocomplete="off" autocorrect="off" autocapitalize="sentences" />
-          <div class="suggestions-dropdown" id="suggestionsDropdown"></div>
-        </div>
-        <input id="qtyInput" type="text" class="input-small" placeholder="Qtà" autocomplete="off" />
-        <input id="priceInput" type="number" class="input-small" placeholder="€" step="0.01" min="0" autocomplete="off" />
-      </div>
-      <div class="row2">
-        <select id="catSelect">
-          <option value="📦 Altri Prodotti">📦 Altri Prodotti</option>
-          <option value="🍺 Bevande">🍺 Bevande</option>
-          <option value="🥩 Carne">🥩 Carne</option>
-          <option value="🥓 Affettati">🥓 Affettati</option>
-          <option value="🏠 Casa">🏠 Casa</option>
-          <option value="🥣 Cereali">🥣 Cereali</option>
-          <option value="☕ Colazione" selected>☕ Colazione</option>
-          <option value="🫒 Condimenti e Spezie">🫒 Condimenti e Spezie</option>
-          <option value="🫙 Salse">🫙 Salse</option>
-          <option value="🍳 Cucina">🍳 Cucina</option>
-          <option value="🍬 Dolci">🍬 Dolci</option>
-          <option value="🧀 Formaggi">🧀 Formaggi</option>
-          <option value="🍎 Frutta">🍎 Frutta</option>
-          <option value="🧴 Igiene Personale">🧴 Igiene Personale</option>
-          <option value="🛁 Bagno">🛁 Bagno</option>
-          <option value="🥛 Latticini">🥛 Latticini</option>
-          <option value="🥖 Pane">🥖 Pane</option>
-          <option value="🍝 Pasta">🍝 Pasta</option>
-          <option value="🐟 Pesce">🐟 Pesce</option>
-          <option value="🧹 Pulizia">🧹 Pulizia</option>
-          <option value="🍿 Snack">🍿 Snack</option>
-          <option value="❄️ Surgelati">❄️ Surgelati</option>
-          <option value="🥚 Uova">🥚 Uova</option>
-          <option value="🥦 Verdura">🥦 Verdura</option>
-        </select>
-        <button id="addBtn" type="button">+</button>
-      </div>
-    </div>
-
-    <div class="filters" id="filters"></div>
-    <ul class="list" id="list"></ul>
-    <div class="empty" id="empty">
-      <div class="ico">🛒</div>
-      <p>La tua lista è vuota.<br />Aggiungi il primo articolo!</p>
-    </div>
-
-    <div class="taken-section collapsed" id="takenSection">
-      <div class="taken-header" id="takenHeader">
-        <h3>📦 Prodotti Presi <span class="taken-count" id="takenCount">0</span></h3>
-        <span class="taken-toggle">▼</span>
-      </div>
-      <div class="taken-body">
-        <ul class="taken-list" id="takenList"></ul>
-        <div class="taken-actions">
-          <button class="taken-btn" id="btnRestoreAll" type="button">↩️ Ripristina tutti</button>
-          <button class="taken-btn danger" id="btnClearTaken" type="button">🗑 Svuota presi</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="products-section collapsed" id="productsSection">
-      <div class="products-header" id="productsHeader">
-        <h3>🛍️ Prodotti <span class="products-count" id="productsCount">0</span></h3>
-        <span class="products-toggle">▼</span>
-      </div>
-      <div class="products-body">
-        <div class="product-form" style="margin-bottom:16px;padding-bottom:16px;border-bottom:1.5px solid var(--line);">
-          <div class="form-row">
-            <input id="productNameInput" type="text" placeholder="Nome prodotto (es. Uova, Latte...)" />
-            <select id="productCatSelect">
-              <option value="📦 Altri Prodotti">📦 Altri Prodotti</option>
-              <option value="🍺 Bevande">🍺 Bevande</option>
-              <option value="🥩 Carne">🥩 Carne</option>
-              <option value="🥓 Affettati">🥓 Affettati</option>
-              <option value="🏠 Casa">🏠 Casa</option>
-              <option value="🥣 Cereali">🥣 Cereali</option>
-              <option value="☕ Colazione">☕ Colazione</option>
-              <option value="🫒 Condimenti e Spezie">🫒 Condimenti e Spezie</option>
-              <option value="🫙 Salse">🫙 Salse</option>
-              <option value="🍳 Cucina">🍳 Cucina</option>
-              <option value="🍬 Dolci">🍬 Dolci</option>
-              <option value="🧀 Formaggi">🧀 Formaggi</option>
-              <option value="🍎 Frutta">🍎 Frutta</option>
-              <option value="🧴 Igiene Personale">🧴 Igiene Personale</option>
-              <option value="🛁 Bagno">🛁 Bagno</option>
-              <option value="🥛 Latticini">🥛 Latticini</option>
-              <option value="🥖 Pane">🥖 Pane</option>
-              <option value="🍝 Pasta">🍝 Pasta</option>
-              <option value="🐟 Pesce">🐟 Pesce</option>
-              <option value="🧹 Pulizia">🧹 Pulizia</option>
-              <option value="🍿 Snack">🍿 Snack</option>
-              <option value="❄️ Surgelati">❄️ Surgelati</option>
-              <option value="🥚 Uova">🥚 Uova</option>
-              <option value="🥦 Verdura">🥦 Verdura</option>
-            </select>
-          </div>
-          <button class="btn-primary orange" id="btnAddProduct" type="button">+ Aggiungi Prodotto</button>
-        </div>
-        
-        <div class="products-toolbar">
-          <div class="products-search">
-            <input id="productSearchInput" type="text" placeholder="🔍 Cerca prodotto..." autocomplete="off" />
-            <button class="products-search-clear" id="btnClearSearch" type="button" style="display:none;">✕</button>
-          </div>
-          <div class="filters" id="productFilters"></div>
-        </div>
-        
-        <div class="products-list" id="productsList"></div>
-      </div>
-    </div>
-
-    <div class="settings-section collapsed" id="settingsSection">
-      <div class="settings-header" id="settingsHeader">
-        <h3>⚙️ Impostazioni</h3>
-        <span class="settings-toggle">▼</span>
-      </div>
-      <div class="settings-body">
-        
-        <div class="settings-block">
-          <div class="settings-block-title">🏪 Supermercati</div>
-          <div class="supermarket-form">
-            <div class="form-row">
-              <input id="supermarketNameInput" type="text" placeholder="Nome supermercato (es. Coop, Esselunga...)" />
+            <div class="total-display">
+                <div class="total-row">
+                    <span class="total-label">Totale Lista:</span>
+                    <span id="totalAmount" class="total-amount">€0.00</span>
+                </div>
+                <div class="people-selector">
+                    <label for="peopleCount">Persone:</label>
+                    <input
+                        type="number"
+                        id="peopleCount"
+                        min="1"
+                        value="1"
+                        class="people-input"
+                    />
+                    <span id="perPersonAmount" class="per-person"
+                        >€0.00/persona</span
+                    >
+                </div>
             </div>
-            <div class="form-row">
-              <input id="supermarketLogoInput" type="text" placeholder="URL logo (opzionale)" />
-              <input id="supermarketLogoFile" type="file" accept="image/*" />
+
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="shopping">
+                    🛍️ Lista
+                </button>
+                <button class="tab-btn" data-tab="taken">📦 Presi</button>
+                <button class="tab-btn" data-tab="database">🗂️ Database</button>
+                <button class="tab-btn" data-tab="archive">📚 Archivio</button>
+                <button class="tab-btn" data-tab="settings">⚙️</button>
             </div>
-            <button class="btn-primary" id="btnAddSupermarket" type="button">+ Aggiungi Supermercato</button>
-          </div>
-          <div class="supermarkets-list" id="supermarketsList" style="margin-top:16px;"></div>
+
+            <!-- TAB LISTA SPESA -->
+            <div class="tab-content active" id="shoppingTab">
+                <div class="add-to-list-box">
+                    <div class="autocomplete-wrapper">
+                        <input
+                            type="text"
+                            id="quickAddInput"
+                            placeholder="🔍 Cerca prodotto nel database..."
+                            autocomplete="off"
+                        />
+                        <div
+                            id="autocompleteList"
+                            class="autocomplete-list"
+                        ></div>
+                    </div>
+                    <div class="quick-add-row">
+                        <input
+                            type="number"
+                            id="quickAddQty"
+                            min="0.1"
+                            step="0.1"
+                            value="1"
+                            class="qty-input"
+                            placeholder="Qtà"
+                        />
+                        <select id="quickAddUnit" class="unit-input">
+                            <option value="pz">pz</option>
+                            <option value="kg">kg</option>
+                            <option value="g">g</option>
+                            <option value="l">l</option>
+                            <option value="ml">ml</option>
+                        </select>
+                        <button
+                            id="quickAddCreateBtn"
+                            class="btn btn-primary btn-small"
+                            title="Crea nuovo prodotto"
+                        >
+                            + Nuovo
+                        </button>
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button id="clearCheckedBtn" class="btn btn-secondary">
+                        ✓ Rimuovi spuntati
+                    </button>
+                    <button id="clearListBtn" class="btn btn-danger">
+                        🗑 Svuota
+                    </button>
+                    <button id="printBtn" class="btn btn-secondary">🖨️</button>
+                </div>
+                <div class="empty-state" id="emptyStateShopping">
+                    <p>La tua lista è vuota. Cerca un prodotto sopra!</p>
+                </div>
+                <ul id="shoppingList" class="product-list"></ul>
+            </div>
+
+            <!-- TAB PRESI -->
+            <div class="tab-content" id="takenTab">
+                <div class="taken-total-box" id="takenTotalBox">
+                    <span class="taken-total-label">Totale Presi:</span>
+                    <span id="takenTotalAmount" class="taken-total-amount"
+                        >€0.00</span
+                    >
+                </div>
+                <div class="action-buttons">
+                    <button id="restoreAllBtn" class="btn btn-secondary">
+                        ↩️ Ripristina
+                    </button>
+                    <button id="clearTakenBtn" class="btn btn-danger">
+                        🗑 Svuota
+                    </button>
+                    <button id="saveShoppingBtn" class="btn btn-success">
+                        💾 Salva Spesa
+                    </button>
+                </div>
+                <div
+                    class="empty-state"
+                    id="emptyStateTaken"
+                    style="display: none"
+                >
+                    <p>Nessun prodotto preso.</p>
+                </div>
+                <ul id="takenList" class="product-list"></ul>
+            </div>
+
+            <!-- TAB DATABASE PRODOTTI -->
+            <div class="tab-content" id="databaseTab">
+                <div class="db-header">
+                    <input
+                        type="text"
+                        id="dbSearch"
+                        placeholder="🔍 Cerca prodotto..."
+                        class="db-search"
+                    />
+                    <button id="addDbProductBtn" class="btn btn-primary">
+                        + Prodotto
+                    </button>
+                </div>
+                <div class="db-categories-filter" id="dbCategoriesFilter"></div>
+                <div class="db-stats" id="dbStats"></div>
+                <div
+                    class="empty-state"
+                    id="emptyStateDb"
+                    style="display: none"
+                >
+                    <p>Database vuoto. Aggiungi il primo prodotto!</p>
+                </div>
+                <ul id="databaseList" class="product-list db-list"></ul>
+            </div>
+
+            <!-- TAB ARCHIVIO -->
+            <div class="tab-content" id="archiveTab">
+                <div class="archive-filters">
+                    <div class="filter-group">
+                        <label for="filterMonth">Mese:</label>
+                        <select id="filterMonth">
+                            <option value="">Tutti</option>
+                            <option value="0">Gennaio</option>
+                            <option value="1">Febbraio</option>
+                            <option value="2">Marzo</option>
+                            <option value="3">Aprile</option>
+                            <option value="4">Maggio</option>
+                            <option value="5">Giugno</option>
+                            <option value="6">Luglio</option>
+                            <option value="7">Agosto</option>
+                            <option value="8">Settembre</option>
+                            <option value="9">Ottobre</option>
+                            <option value="10">Novembre</option>
+                            <option value="11">Dicembre</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterYear">Anno:</label>
+                        <select id="filterYear">
+                            <option value="">Tutti</option>
+                        </select>
+                    </div>
+                    <div class="archive-stats">
+                        <div class="stat-card">
+                            <span class="stat-label">Media spesa:</span>
+                            <span id="averageSpending" class="stat-value"
+                                >€0.00</span
+                            >
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Spese totali:</span>
+                            <span id="totalShoppingCount" class="stat-value"
+                                >0</span
+                            >
+                        </div>
+                    </div>
+                </div>
+                <ul id="archiveList" class="archive-list"></ul>
+            </div>
+
+            <!-- TAB IMPOSTAZIONI -->
+            <div class="tab-content" id="settingsTab">
+                <div class="settings-section">
+                    <h3>🏪 Supermercati</h3>
+                    <div class="supermarket-form">
+                        <input
+                            type="text"
+                            id="newSupermarketName"
+                            placeholder="Nome supermercato"
+                        />
+                        <button id="addSupermarketBtn" class="btn btn-primary">
+                            + Aggiungi
+                        </button>
+                    </div>
+                    <ul id="supermarketsList" class="supermarkets-list"></ul>
+                </div>
+                <div class="settings-section">
+                    <h3>💾 Backup Dati</h3>
+                    <div class="backup-buttons">
+                        <button id="exportBtn" class="btn btn-primary">
+                            📤 Esporta
+                        </button>
+                        <button id="importBtn" class="btn btn-primary">
+                            📥 Importa
+                        </button>
+                        <input
+                            type="file"
+                            id="importFile"
+                            accept=".json"
+                            style="display: none"
+                        />
+                    </div>
+                    <p class="info-text">
+                        Esporta/importa tutti i tuoi dati (database, liste,
+                        archivio, supermercati).
+                    </p>
+                </div>
+            </div>
         </div>
 
-        <div class="settings-block">
-          <div class="settings-block-title">💾 Backup Dati</div>
-          <div class="io-buttons">
-            <button class="io-btn export" id="btnExport" type="button">
-              <span>📤</span> Esporta dati
-            </button>
-            <button class="io-btn import" id="btnImportTrigger" type="button">
-              <span>📥</span> Importa dati
-            </button>
-            <input type="file" id="importFileInput" accept=".json,application/json" />
-          </div>
-          <p style="margin-top:10px;font-size:0.78rem;color:var(--soft);line-height:1.4;">
-            Esporta un file JSON con tutte le tue liste, prodotti e supermercati. Importalo su un altro dispositivo per ripristinare tutto.
-          </p>
+        <!-- Modal Aggiungi/Modifica Prodotto Database -->
+        <div id="dbProductModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="dbProductModalTitle">Nuovo Prodotto</h2>
+                    <button class="close-btn" data-close="dbProductModal">
+                        &times;
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="dbProdName">Nome prodotto:</label>
+                        <input
+                            type="text"
+                            id="dbProdName"
+                            placeholder="Es. Latte"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label for="dbProdCategory">Categoria:</label>
+                        <select id="dbProdCategory"></select>
+                    </div>
+                    <div id="dbPricesContainer" class="prices-container"></div>
+                </div>
+                <div class="modal-footer">
+                    <button
+                        class="btn btn-secondary"
+                        data-close="dbProductModal"
+                    >
+                        Annulla
+                    </button>
+                    <button id="saveDbProductBtn" class="btn btn-primary">
+                        Salva
+                    </button>
+                </div>
+            </div>
         </div>
 
-      </div>
-    </div>
-
-    <div class="ftr">
-      <button class="abtn" id="btnShowTaken" type="button">📦 Prodotti Presi</button>
-      <button class="abtn" id="btnShowProducts" type="button">🛍️ Prodotti</button>
-      <button class="abtn" id="btnShowSettings" type="button">⚙️ Impostazioni</button>
-      <button class="abtn" id="btnRm" type="button">✓ Rimuovi spuntati</button>
-      <button class="abtn" id="btnCl" type="button">🗑 Svuota lista</button>
-      <button class="abtn wide primary" id="btnPr" type="button">🖨️ PDF / Stampa</button>
-    </div>
-  </div>
-
-  <div class="toast" id="toast"></div>
-
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-
-  <script>
-    var FIREBASE_CONFIG = {
-      apiKey: "AIzaSyC5aot7NVkNW9YlSGRm9o1onQ7tyDN4b80",
-      authDomain: "lista-della-spesa-1696b.firebaseapp.com",
-      databaseURL: "https://lista-della-spesa-1696b-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "lista-della-spesa-1696b",
-      storageBucket: "lista-della-spesa-1696b.firebasestorage.app",
-      messagingSenderId: "801259224997",
-      appId: "1:801259224997:web:bcf78aafe0daf07688724c",
-    };
-
-    var COLORS = {
-      "📦 Altri Prodotti": "#90a4ae",
-      "🍺 Bevande": "#e91e63",
-      "🥩 Carne": "#e57373",
-      "🥓 Affettati": "#ffab91",
-      "🏠 Casa": "#8d6e63",
-      "🥣 Cereali": "#ffca28",
-      "☕ Colazione": "#a1887f",
-      "🫒 Condimenti e Spezie": "#aed581",
-      "🫙 Salse": "#ffa726",
-      "🍳 Cucina": "#ff8a65",
-      "🍬 Dolci": "#f06292",
-      "🧀 Formaggi": "#ffd54f",
-      "🍎 Frutta": "#ef5350",
-      "🧴 Igiene Personale": "#ba68c8",
-      "🛁 Bagno": "#a7c0eb",
-      "🥛 Latticini": "#90caf9",
-      "🥖 Pane": "#bcaaa4",
-      "🍝 Pasta": "#ffe082",
-      "🐟 Pesce": "#4db6ac",
-      "🧹 Pulizia": "#4dd0e1",
-      "🍿 Snack": "#ffb74d",
-      "❄️ Surgelati": "#4fc3f7",
-      "🥚 Uova": "#fff59d",
-      "🥦 Verdura": "#66bb6a",
-    };
-
-    var ALL_CATS = ["📦 Altri Prodotti", "🍺 Bevande", "🥩 Carne", "🥓 Affettati", "🏠 Casa", "🥣 Cereali", "☕ Colazione",
-      "🫒 Condimenti e Spezie", "🫙 Salse", "🍳 Cucina", "🍬 Dolci", "🧀 Formaggi", "🍎 Frutta",
-      "🧴 Igiene Personale", "🛁 Bagno", "🥛 Latticini", "🥖 Pane", "🍝 Pasta", "🐟 Pesce",
-      "🧹 Pulizia", "🍿 Snack", "❄️ Surgelati", "🥚 Uova", "🥦 Verdura"];
-
-    var lists = {};
-    var supermarkets = {};
-    var products = {};
-    var currentListId = null;
-    var currentSupermarketId = null;
-    var filter = "tutti";
-    var productFilter = "tutti";
-    var productSearch = "";
-    var expandedProducts = {};
-    var toastTmr;
-    var db = null;
-    var dbRefLists = null;
-    var dbRefSupermarkets = null;
-    var dbRefProducts = null;
-    var configured = false;
-    var savedListId = localStorage.getItem("currentListId");
-
-    function setSyncState(state, label) {
-      document.getElementById("syncDot").className = "sync-dot " + state;
-      document.getElementById("syncLabel").textContent = label;
-    }
-
-    function normalizeList(list) {
-      if (!list) return { name: "Lista", items: [], taken: [], created: Date.now() };
-      var items = [], taken = [];
-      if (list.items && typeof list.items === "object") {
-        items = Array.isArray(list.items) ? list.items : Object.values(list.items);
-      }
-      if (list.taken && typeof list.taken === "object") {
-        taken = Array.isArray(list.taken) ? list.taken : Object.values(list.taken);
-      }
-      return { name: list.name || "Lista", items: items, taken: taken, created: list.created || Date.now() };
-    }
-
-    function normalizeSupermarket(sm) {
-      if (!sm) return null;
-      return {
-        id: sm.id,
-        name: sm.name || "",
-        logo: sm.logo || null,
-        created: sm.created || Date.now()
-      };
-    }
-
-    function normalizeProduct(prod) {
-      if (!prod) return null;
-      var prices = {};
-      if (prod.prices && typeof prod.prices === "object") {
-        if (Array.isArray(prod.prices)) {
-          prod.prices.forEach(function(p) { if (p && p.smId) prices[p.smId] = { price: p.price || 0 }; });
-        } else {
-          Object.keys(prod.prices).forEach(function(smId) {
-            prices[smId] = { price: (prod.prices[smId] && prod.prices[smId].price) || 0 };
-          });
-        }
-      }
-      return {
-        id: prod.id,
-        name: prod.name || "",
-        cat: prod.cat || "📦 Altri Prodotti",
-        prices: prices,
-        created: prod.created || Date.now()
-      };
-    }
-
-    function findProductByName(name) {
-      var lowerName = name.toLowerCase().trim();
-      var ids = Object.keys(products);
-      for (var i = 0; i < ids.length; i++) {
-        if (products[ids[i]].name.toLowerCase().trim() === lowerName) {
-          return products[ids[i]];
-        }
-      }
-      return null;
-    }
-
-    function findTakenByName(name) {
-      var list = getCurrentList();
-      if (!list || !list.taken) return null;
-      var lowerName = name.toLowerCase().trim();
-      for (var i = 0; i < list.taken.length; i++) {
-        if (list.taken[i].name.toLowerCase().trim() === lowerName) {
-          return list.taken[i];
-        }
-      }
-      return null;
-    }
-
-    function searchSuggestions(query) {
-      if (!query || query.trim().length < 2) return [];
-      var lowerQuery = query.toLowerCase().trim();
-      var suggestions = [];
-      var seenNames = {};
-      
-      Object.keys(products).forEach(function(id) {
-        var prod = products[id];
-        if (prod.name.toLowerCase().indexOf(lowerQuery) >= 0) {
-          var key = prod.name.toLowerCase().trim();
-          if (!seenNames[key]) {
-            seenNames[key] = true;
-            var price = 0;
-            if (currentSupermarketId && prod.prices && prod.prices[currentSupermarketId]) {
-              price = prod.prices[currentSupermarketId].price || 0;
-            }
-            suggestions.push({
-              name: prod.name,
-              cat: prod.cat,
-              price: price,
-              source: 'catalog',
-              priority: 1
-            });
-          }
-        }
-      });
-      
-      var list = getCurrentList();
-      if (list && list.taken) {
-        list.taken.forEach(function(item) {
-          if (item.name.toLowerCase().indexOf(lowerQuery) >= 0) {
-            var key = item.name.toLowerCase().trim();
-            if (!seenNames[key]) {
-              seenNames[key] = true;
-              suggestions.push({
-                name: item.name,
-                cat: item.cat,
-                price: item.price || 0,
-                source: 'taken',
-                priority: 2
-              });
-            }
-          }
-        });
-      }
-      
-      suggestions.sort(function(a, b) {
-        if (a.priority !== b.priority) return a.priority - b.priority;
-        return a.name.localeCompare(b.name);
-      });
-      
-      return suggestions.slice(0, 6);
-    }
-
-    function showSuggestions(query) {
-      var dropdown = document.getElementById("suggestionsDropdown");
-      var suggestions = searchSuggestions(query);
-      
-      if (suggestions.length === 0) {
-        dropdown.classList.remove("show");
-        dropdown.innerHTML = "";
-        return;
-      }
-      
-      dropdown.innerHTML = "";
-      suggestions.forEach(function(sug, idx) {
-        var item = document.createElement("div");
-        item.className = "suggestion-item";
-        item.dataset.index = idx;
-        
-        var icon = sug.cat ? sug.cat.split(' ')[0] : '📦';
-        var sourceLabel = sug.source === 'catalog' ? 'Catalogo' : 'Presi';
-        var sourceClass = sug.source === 'catalog' ? 'catalog' : 'taken';
-        
-        var priceHtml = "";
-        if (sug.price > 0 && currentSupermarketId) {
-          priceHtml = '<span class="suggestion-price">€' + sug.price.toFixed(2) + '</span>';
-        }
-        
-        item.innerHTML = 
-          '<div class="suggestion-icon">' + icon + '</div>' +
-          '<div class="suggestion-info">' +
-            '<div class="suggestion-name">' + sug.name + '</div>' +
-            '<div class="suggestion-meta">' +
-              '<span>' + sug.cat + '</span>' +
-              priceHtml +
-              '<span class="suggestion-source ' + sourceClass + '">' + sourceLabel + '</span>' +
-            '</div>' +
-          '</div>';
-        
-        item.addEventListener("mousedown", function(e) {
-          e.preventDefault();
-          selectSuggestion(sug);
-        });
-        
-        dropdown.appendChild(item);
-      });
-      
-      dropdown.classList.add("show");
-    }
-
-    function hideSuggestions() {
-      var dropdown = document.getElementById("suggestionsDropdown");
-      dropdown.classList.remove("show");
-      dropdown.innerHTML = "";
-    }
-
-    function selectSuggestion(sug) {
-      var ni = document.getElementById("itemInput");
-      var qi = document.getElementById("qtyInput");
-      var pi = document.getElementById("priceInput");
-      var ci = document.getElementById("catSelect");
-      
-      ni.value = sug.name;
-      if (sug.price > 0 && currentSupermarketId) {
-        pi.value = sug.price.toFixed(2);
-      }
-      
-      for (var i = 0; i < ci.options.length; i++) {
-        if (ci.options[i].value === sug.cat) {
-          ci.selectedIndex = i;
-          break;
-        }
-      }
-      
-      hideSuggestions();
-      addItem();
-      
-      var sourceText = sug.source === 'catalog' ? 'dal catalogo' : 'dai presi';
-      toast("✨ " + sug.name + " aggiunto " + sourceText);
-    }
-
-    function updatePricesInList() {
-      var list = getCurrentList();
-      if (!list) {
-        render();
-        return;
-      }
-      if (!list.items) list.items = [];
-      if (!list.taken) list.taken = [];
-  
-      if (!currentSupermarketId) {
-        render();
-        return;
-      }
-  
-      var updates = {};
-      var changed = false;
-  
-      // Aggiorna prezzi nella lista principale
-      list.items.forEach(function(item) {
-        if (!item.name || !item.name.trim() || !item.id) return;
-    
-        var prod = findProductByName(item.name);
-        if (prod && prod.prices && prod.prices[currentSupermarketId]) {
-          var newPrice = prod.prices[currentSupermarketId].price || 0;
-      
-          if (item.price !== newPrice) {
-            item.price = newPrice;
-            changed = true;
-            if (configured && dbRefLists) {
-              updates[currentListId + "/items/" + item.id + "/price"] = newPrice;
-            }
-          }
-        }
-      });
-  
-      // NUOVO: Aggiorna prezzi anche nei Prodotti Presi
-      list.taken.forEach(function(item) {
-        if (!item.name || !item.name.trim() || !item.id) return;
-    
-        var prod = findProductByName(item.name);
-        if (prod && prod.prices && prod.prices[currentSupermarketId]) {
-          var newPrice = prod.prices[currentSupermarketId].price || 0;
-      
-          if (item.price !== newPrice) {
-            item.price = newPrice;
-            changed = true;
-            if (configured && dbRefLists) {
-              updates[currentListId + "/taken/" + item.id + "/price"] = newPrice;
-            }
-          }
-        }
-      });
-  
-      if (changed) {
-        if (configured && dbRefLists && Object.keys(updates).length > 0) {
-          setSyncState("syncing", "Aggiornamento prezzi…");
-          dbRefLists.update(updates).then(function() {
-            render();
-          }).catch(function(err) {
-            console.error("Errore aggiornamento prezzi:", err);
-            render();
-          });
-        } else {
-          saveLocal();
-          render();
-        }
-        var sm = supermarkets[currentSupermarketId];
-        toast("💰 Prezzi aggiornati: " + (sm ? sm.name : "supermercato"));
-      } else {
-        render();
-      }
-    }
-
-    function initFirebase() {
-      setSyncState("syncing", "Connessione…");
-      var initTimeout = setTimeout(function () {
-        if (!configured) {
-          setSyncState("offline", "Offline — modalità locale");
-          initLocalMode();
-        }
-      }, 5000);
-
-      try {
-        var app = firebase.initializeApp(FIREBASE_CONFIG);
-        db = firebase.database(app);
-        dbRefLists = db.ref("lists");
-        dbRefSupermarkets = db.ref("supermarkets");
-        dbRefProducts = db.ref("products");
-
-        var auth = firebase.auth();
-        auth.signInAnonymously()
-          .then(function () { console.log("Accesso anonimo effettuato!"); })
-          .catch(function (error) { console.error("Errore di login:", error.message); });
-
-        dbRefLists.on("value", function (snapshot) {
-          var data = snapshot.val() || {};
-          lists = {};
-          Object.keys(data).forEach(function (id) {
-            lists[id] = normalizeList(data[id]);
-          });
-          if (Object.keys(lists).length === 0) createDefaultList();
-          if (savedListId && lists[savedListId]) currentListId = savedListId;
-          else if (!currentListId || !lists[currentListId]) currentListId = Object.keys(lists)[0];
-          renderListSelector();
-          render();
-          checkAllLoaded();
-        }, function (err) {
-          console.error("Errore liste:", err);
-        });
-
-        dbRefSupermarkets.on("value", function (snapshot) {
-          var data = snapshot.val() || {};
-          supermarkets = {};
-          Object.keys(data).forEach(function (id) {
-            var sm = normalizeSupermarket(data[id]);
-            if (sm) supermarkets[id] = sm;
-          });
-          renderSupermarketSelector();
-          renderSupermarketsList();
-          renderProductsList();
-          checkAllLoaded();
-        }, function (err) {
-          console.error("Errore supermercati:", err);
-        });
-
-        dbRefProducts.on("value", function (snapshot) {
-          var data = snapshot.val() || {};
-          products = {};
-          Object.keys(data).forEach(function (id) {
-            var prod = normalizeProduct(data[id]);
-            if (prod) products[id] = prod;
-          });
-          renderProductsList();
-          checkAllLoaded();
-        }, function (err) {
-          console.error("Errore prodotti:", err);
-        });
-
-        db.ref(".info/connected").on("value", function (snap) {
-          if (!snap.val() && configured) setSyncState("offline", "Offline");
-          else if (snap.val() && configured) setSyncState("online", "Sincronizzato ✓");
-        });
-
-      } catch (e) {
-        clearTimeout(initTimeout);
-        setSyncState("offline", "Errore configurazione");
-        toast("⚠️ " + e.message);
-        initLocalMode();
-      }
-    }
-
-    var listsLoaded = false;
-    var supermarketsLoaded = false;
-    var productsLoaded = false;
-
-    function checkAllLoaded() {
-      if (Object.keys(lists).length > 0 || listsLoaded) listsLoaded = true;
-      if (Object.keys(supermarkets).length > 0 || supermarketsLoaded) supermarketsLoaded = true;
-      if (Object.keys(products).length > 0 || productsLoaded) productsLoaded = true;
-      
-      if (listsLoaded && supermarketsLoaded && productsLoaded) {
-        configured = true;
-        setSyncState("online", "Sincronizzato ✓");
-      }
-    }
-
-    function initLocalMode() {
-      configured = false;
-      var saved = localStorage.getItem("shoppingLists");
-      if (saved) {
-        try {
-          var data = JSON.parse(saved);
-          lists = {};
-          Object.keys(data).forEach(function (id) {
-            lists[id] = normalizeList(data[id]);
-          });
-        } catch (e) { lists = {}; }
-      }
-      var savedSupermarkets = localStorage.getItem("supermarkets");
-      if (savedSupermarkets) {
-        try {
-          var data = JSON.parse(savedSupermarkets);
-          supermarkets = {};
-          Object.keys(data).forEach(function (id) {
-            var sm = normalizeSupermarket(data[id]);
-            if (sm) supermarkets[id] = sm;
-          });
-        } catch (e) { supermarkets = {}; }
-      }
-      var savedProducts = localStorage.getItem("products");
-      if (savedProducts) {
-        try {
-          var data = JSON.parse(savedProducts);
-          products = {};
-          Object.keys(data).forEach(function (id) {
-            var prod = normalizeProduct(data[id]);
-            if (prod) products[id] = prod;
-          });
-        } catch (e) { products = {}; }
-      }
-      currentSupermarketId = localStorage.getItem("currentSupermarketId");
-      if (Object.keys(lists).length === 0) createDefaultList();
-      if (savedListId && lists[savedListId]) currentListId = savedListId;
-      else currentListId = Object.keys(lists)[0];
-      renderListSelector();
-      renderSupermarketSelector();
-      renderSupermarketsList();
-      renderProductsList();
-      render();
-    }
-
-    function saveLocal() {
-      if (!configured) {
-        localStorage.setItem("shoppingLists", JSON.stringify(lists));
-        localStorage.setItem("supermarkets", JSON.stringify(supermarkets));
-        localStorage.setItem("products", JSON.stringify(products));
-      }
-    }
-
-    function createDefaultList() {
-      var id = "list_" + Date.now();
-      lists[id] = { name: "Lista principale", items: [], taken: [], created: Date.now() };
-      currentListId = id;
-      saveLocal();
-      if (configured && dbRefLists) dbRefLists.child(id).set(lists[id]);
-    }
-
-    function getCurrentList() {
-      if (!currentListId || !lists[currentListId]) {
-        if (Object.keys(lists).length === 0) createDefaultList();
-        else currentListId = Object.keys(lists)[0];
-      }
-      return lists[currentListId];
-    }
-
-    function toast(m) {
-      var t = document.getElementById("toast");
-      t.textContent = m; t.classList.add("on");
-      clearTimeout(toastTmr);
-      toastTmr = setTimeout(function () { t.classList.remove("on"); }, 2600);
-    }
-
-    function newItem(name, qty, price, cat) {
-      return {
-        id: String(Date.now()) + String(Math.random()).slice(2, 7),
-        name: name, qty: qty, price: parseFloat(price) || 0, cat: cat,
-        done: false, ts: Date.now(),
-      };
-    }
-
-    function addItem() {
-      hideSuggestions();
-      var ni = document.getElementById("itemInput");
-      var qi = document.getElementById("qtyInput");
-      var pi = document.getElementById("priceInput");
-      var ci = document.getElementById("catSelect");
-      var n = ni.value.trim();
-      if (!n) { ni.focus(); return; }
-      
-      var list = getCurrentList();
-      var price = parseFloat(pi.value) || 0;
-      var cat = ci.value;
-      
-      var prod = findProductByName(n);
-      if (prod) {
-        if (cat === ci.options[ci.selectedIndex].defaultSelected || !pi.value) {
-          cat = prod.cat;
-        }
-        if (!pi.value && currentSupermarketId && prod.prices && prod.prices[currentSupermarketId]) {
-          price = prod.prices[currentSupermarketId].price || 0;
-        }
-      }
-      
-      var it = newItem(n, qi.value.trim(), price, cat);
-      ni.value = ""; qi.value = ""; pi.value = "";
-      
-      if (configured && dbRefLists) {
-        setSyncState("syncing", "Salvataggio…");
-        dbRefLists.child(currentListId + "/items/" + it.id).set(it);
-        list.items.unshift(it);
-        render();
-      } else {
-        list.items.unshift(it);
-        saveLocal();
-        render();
-      }
-      ni.focus();
-      
-      if (prod && currentSupermarketId) {
-        toast("✨ " + n + " - prezzo da catalogo");
-      }
-    }
-
-    function toggleDone(id) {
-      var list = getCurrentList();
-      var it = list.items.find(function (x) { return x.id === id; });
-      if (!it) return;
-      it.done = !it.done;
-      if (configured && dbRefLists) {
-        setSyncState("syncing", "Salvataggio…");
-        dbRefLists.child(currentListId + "/items/" + id + "/done").set(it.done);
-      } else { saveLocal(); render(); }
-    }
-
-    function moveToTaken(id) {
-      var list = getCurrentList();
-      var idx = list.items.findIndex(function (x) { return x.id === id; });
-      if (idx < 0) return;
-      var item = list.items.splice(idx, 1)[0];
-      item.takenAt = Date.now();
-      list.taken.unshift(item);
-      if (configured && dbRefLists) {
-        setSyncState("syncing", "Salvataggio…");
-        var updates = {};
-        updates[currentListId + "/items/" + id] = null;
-        updates[currentListId + "/taken/" + id] = item;
-        dbRefLists.update(updates);
-      } else { saveLocal(); }
-      var el = document.querySelector('[data-lid="' + id + '"]');
-      if (el) {
-        el.classList.add("fading");
-        setTimeout(function () { render(); }, 280);
-      } else { render(); }
-      toast("📦 " + item.name + " aggiunto ai Presi");
-    }
-
-    function restoreItem(id) {
-      var list = getCurrentList();
-      var idx = list.taken.findIndex(function (x) { return x.id === id; });
-      if (idx < 0) return;
-      var item = list.taken.splice(idx, 1)[0];
-      delete item.takenAt;
-      item.done = false;
-      list.items.unshift(item);
-      if (configured && dbRefLists) {
-        setSyncState("syncing", "Salvataggio…");
-        var updates = {};
-        updates[currentListId + "/taken/" + id] = null;
-        updates[currentListId + "/items/" + id] = item;
-        dbRefLists.update(updates);
-      } else { saveLocal(); render(); }
-    }
-
-    function moveToProducts(id) {
-      var list = getCurrentList();
-      var idx = list.taken.findIndex(function (x) { return x.id === id; });
-      if (idx < 0) return;
-      var item = list.taken[idx];
-      
-      var existingProd = findProductByName(item.name);
-      
-      if (existingProd) {
-        if (!confirm('Esiste già un prodotto "' + item.name + '" nel catalogo.\n\nVuoi aggiornarlo con i dati di questo articolo (prezzo, categoria)?')) {
-          return;
-        }
-        existingProd.cat = item.cat;
-        if (!existingProd.prices) existingProd.prices = {};
-        if (currentSupermarketId) {
-          existingProd.prices[currentSupermarketId] = { price: item.price || 0 };
-        } else if (Object.keys(supermarkets).length > 0) {
-          var firstSmId = Object.keys(supermarkets)[0];
-          existingProd.prices[firstSmId] = { price: item.price || 0 };
-        }
-        if (configured && dbRefProducts) {
-          setSyncState("syncing", "Salvataggio…");
-          dbRefProducts.child(existingProd.id).set(existingProd);
-        } else {
-          saveLocal();
-        }
-        renderProductsList();
-      } else {
-        var newProdId = "prod_" + Date.now();
-        var newProd = {
-          id: newProdId,
-          name: item.name,
-          cat: item.cat,
-          prices: {},
-          created: Date.now()
-        };
-        if (currentSupermarketId) {
-          newProd.prices[currentSupermarketId] = { price: item.price || 0 };
-        } else {
-          Object.keys(supermarkets).forEach(function(smId) {
-            newProd.prices[smId] = { price: 0 };
-          });
-        }
-        Object.keys(supermarkets).forEach(function(smId) {
-          if (!newProd.prices[smId]) newProd.prices[smId] = { price: 0 };
-        });
-        if (configured && dbRefProducts) {
-          setSyncState("syncing", "Salvataggio…");
-          dbRefProducts.child(newProdId).set(newProd);
-        } else {
-          products[newProdId] = newProd;
-          saveLocal();
-        }
-        renderProductsList();
-      }
-      
-      list.taken.splice(idx, 1);
-      if (configured && dbRefLists) {
-        setSyncState("syncing", "Salvataggio…");
-        dbRefLists.child(currentListId + "/taken/" + id).remove();
-      } else {
-        saveLocal();
-      }
-      
-      render();
-      toast("🛍️ " + item.name + " aggiunto al catalogo Prodotti");
-      
-      var section = document.getElementById("productsSection");
-      if (section.classList.contains("collapsed")) {
-        section.classList.remove("collapsed");
-        document.getElementById("btnShowProducts").classList.add("on");
-      }
-    }
-
-    function editItem(id) {
-      var existing = document.querySelector(".edit-form");
-      if (existing) {
-        var prevId = existing.dataset.id;
-        if (prevId === id) { existing.remove(); return; }
-        existing.remove();
-      }
-      var list = getCurrentList();
-      var it = list.items.find(function (x) { return x.id === id; });
-      if (!it) return;
-      var li = document.querySelector('[data-lid="' + id + '"]');
-      if (!li) return;
-
-      var form = document.createElement("div");
-      form.className = "edit-form"; form.dataset.id = id;
-      var nameRow = document.createElement("div"); nameRow.className = "edit-row";
-      var nameInp = document.createElement("input"); nameInp.type = "text"; nameInp.className = "edit-name";
-      nameInp.value = it.name; nameInp.placeholder = "Nome";
-      var qtyInp = document.createElement("input"); qtyInp.type = "text"; qtyInp.className = "edit-qty";
-      qtyInp.value = it.qty || ""; qtyInp.placeholder = "Qtà";
-      nameRow.appendChild(nameInp); nameRow.appendChild(qtyInp);
-
-      var priceRow = document.createElement("div"); priceRow.className = "edit-row";
-      var priceInp = document.createElement("input"); priceInp.type = "number"; priceInp.className = "edit-qty";
-      priceInp.value = it.price || ""; priceInp.placeholder = "€"; priceInp.step = "0.01";
-      priceRow.appendChild(priceInp);
-
-      var catSel = document.createElement("select"); catSel.className = "edit-cat";
-      ALL_CATS.forEach(function (c) {
-        var o = document.createElement("option"); o.value = c; o.textContent = c;
-        if (c === it.cat) o.selected = true;
-        catSel.appendChild(o);
-      });
-
-      var actions = document.createElement("div"); actions.className = "edit-actions";
-      var saveBtn = document.createElement("button"); saveBtn.type = "button"; saveBtn.className = "edit-save"; saveBtn.textContent = "✓ Salva";
-      var cancelBtn = document.createElement("button"); cancelBtn.type = "button"; cancelBtn.className = "edit-cancel"; cancelBtn.textContent = "Annulla";
-
-      saveBtn.addEventListener("click", function () {
-        var newName = nameInp.value.trim();
-        if (!newName) { nameInp.focus(); return; }
-        var updates = { name: newName, qty: qtyInp.value.trim(), price: parseFloat(priceInp.value) || 0, cat: catSel.value };
-        if (configured && dbRefLists) {
-          setSyncState("syncing", "Salvataggio…");
-          dbRefLists.child(currentListId + "/items/" + id).update(updates);
-        } else { Object.assign(it, updates); saveLocal(); render(); }
-        toast("✏️ Modificato!");
-      });
-      cancelBtn.addEventListener("click", function () { form.remove(); });
-      nameInp.addEventListener("keydown", function (e) { if (e.key === "Enter") saveBtn.click(); if (e.key === "Escape") cancelBtn.click(); });
-
-      actions.appendChild(saveBtn); actions.appendChild(cancelBtn);
-      form.appendChild(nameRow); form.appendChild(priceRow); form.appendChild(catSel); form.appendChild(actions);
-      li.appendChild(form);
-      nameInp.focus(); nameInp.select();
-    }
-
-    function delItem(id) {
-      if (configured && dbRefLists) {
-        setSyncState("syncing", "Salvataggio…");
-        dbRefLists.child(currentListId + "/items/" + id).remove();
-      } else {
-        var list = getCurrentList();
-        list.items = list.items.filter(function (x) { return x.id !== id; });
-        saveLocal(); render();
-      }
-    }
-
-    function removeChecked() {
-      var list = getCurrentList();
-      var checked = list.items.filter(function (x) { return x.done; });
-      if (!checked.length) { toast("Nessun articolo spuntato!"); return; }
-      if (configured && dbRefLists) {
-        setSyncState("syncing", "Salvataggio…");
-        var updates = {};
-        checked.forEach(function (x) { updates[currentListId + "/items/" + x.id] = null; });
-        dbRefLists.update(updates);
-      } else {
-        list.items = list.items.filter(function (x) { return !x.done; });
-        saveLocal(); render();
-      }
-      toast("🗑 " + checked.length + " articoli rimossi");
-    }
-
-    function clearAll() {
-      var list = getCurrentList();
-      if (!list.items.length) { toast("La lista è già vuota!"); return; }
-      if (!confirm('Svuotare tutta la lista "' + list.name + '"?')) return;
-      if (configured && dbRefLists) {
-        setSyncState("syncing", "Salvataggio…");
-        dbRefLists.child(currentListId + "/items").remove();
-      } else { list.items = []; saveLocal(); render(); }
-    }
-
-    function clearTaken() {
-      var list = getCurrentList();
-      if (!list.taken.length) { toast("Nessun articolo nei Presi!"); return; }
-      if (!confirm("Eliminare tutti i " + list.taken.length + " articoli presi?")) return;
-      if (configured && dbRefLists) {
-        setSyncState("syncing", "Salvataggio…");
-        dbRefLists.child(currentListId + "/taken").remove();
-      } else { list.taken = []; saveLocal(); render(); }
-    }
-
-    function restoreAllTaken() {
-      var list = getCurrentList();
-      if (!list.taken.length) { toast("Nessun articolo da ripristinare!"); return; }
-      if (!confirm("Ripristinare tutti i " + list.taken.length + " articoli nella lista?")) return;
-      if (configured && dbRefLists) {
-        setSyncState("syncing", "Salvataggio…");
-        var updates = {};
-        list.taken.forEach(function (x) {
-          var restored = { id: x.id, name: x.name, qty: x.qty, price: x.price || 0, cat: x.cat, done: false, ts: Date.now() };
-          updates[currentListId + "/taken/" + x.id] = null;
-          updates[currentListId + "/items/" + x.id] = restored;
-        });
-        dbRefLists.update(updates);
-      } else {
-        list.taken.forEach(function (x) { delete x.takenAt; x.done = false; list.items.unshift(x); });
-        list.taken = []; saveLocal(); render();
-      }
-    }
-
-    function addSupermarket() {
-      var nameInput = document.getElementById("supermarketNameInput");
-      var logoUrlInput = document.getElementById("supermarketLogoInput");
-      var logoFileInput = document.getElementById("supermarketLogoFile");
-      
-      var name = nameInput.value.trim();
-      if (!name) { toast("Inserisci il nome del supermercato!"); nameInput.focus(); return; }
-      
-      var id = "sm_" + Date.now();
-      var supermarket = {
-        id: id, name: name,
-        logo: logoUrlInput.value.trim() || null,
-        created: Date.now()
-      };
-      
-      var finalize = function() {
-        if (configured && dbRefSupermarkets) {
-          setSyncState("syncing", "Salvataggio…");
-          dbRefSupermarkets.child(id).set(supermarket).then(function() {
-            var prodUpdates = {};
-            Object.keys(products).forEach(function(pid) {
-              if (!products[pid].prices) products[pid].prices = {};
-              products[pid].prices[id] = { price: 0 };
-              prodUpdates[pid + "/prices/" + id] = { price: 0 };
-            });
-            if (Object.keys(prodUpdates).length > 0 && dbRefProducts) {
-              dbRefProducts.update(prodUpdates);
-            }
-            toast("✨ Supermercato aggiunto!");
-          });
-        } else {
-          supermarkets[id] = supermarket;
-          Object.keys(products).forEach(function(pid) {
-            if (!products[pid].prices) products[pid].prices = {};
-            products[pid].prices[id] = { price: 0 };
-          });
-          saveLocal();
-          renderSupermarketSelector();
-          renderSupermarketsList();
-          renderProductsList();
-          toast("✨ Supermercato aggiunto!");
-        }
-        nameInput.value = "";
-        logoUrlInput.value = "";
-        logoFileInput.value = "";
-      };
-      
-      if (logoFileInput.files && logoFileInput.files[0]) {
-        var reader = new FileReader();
-        reader.onload = function(e) {
-          supermarket.logo = e.target.result;
-          finalize();
-        };
-        reader.readAsDataURL(logoFileInput.files[0]);
-      } else {
-        finalize();
-      }
-    }
-
-    function deleteSupermarket(id) {
-      if (!confirm("Eliminare questo supermercato? I prezzi associati ai prodotti verranno rimossi.")) return;
-      
-      if (configured && dbRefSupermarkets) {
-        setSyncState("syncing", "Eliminazione…");
-        dbRefSupermarkets.child(id).remove().then(function() {
-          var prodUpdates = {};
-          Object.keys(products).forEach(function(pid) {
-            if (products[pid].prices && products[pid].prices[id]) {
-              prodUpdates[pid + "/prices/" + id] = null;
-            }
-          });
-          if (Object.keys(prodUpdates).length > 0 && dbRefProducts) {
-            dbRefProducts.update(prodUpdates);
-          }
-          if (currentSupermarketId === id) {
-            currentSupermarketId = null;
-            localStorage.removeItem("currentSupermarketId");
-          }
-          toast("🗑 Supermercato eliminato");
-        });
-      } else {
-        delete supermarkets[id];
-        Object.keys(products).forEach(function(pid) {
-          if (products[pid].prices && products[pid].prices[id]) {
-            delete products[pid].prices[id];
-          }
-        });
-        if (currentSupermarketId === id) {
-          currentSupermarketId = null;
-          localStorage.removeItem("currentSupermarketId");
-        }
-        saveLocal();
-        renderSupermarketSelector();
-        renderSupermarketsList();
-        renderProductsList();
-        render();
-        toast("🗑 Supermercato eliminato");
-      }
-    }
-
-    function editSupermarket(id) {
-      var sm = supermarkets[id];
-      if (!sm) return;
-      
-      var container = document.getElementById("supermarketsList");
-      var itemEl = container.querySelector('[data-smid="' + id + '"]');
-      if (!itemEl) return;
-      
-      itemEl.classList.add("editing");
-      itemEl.innerHTML = '';
-      
-      var nameRow = document.createElement("div");
-      nameRow.className = "form-row";
-      var nameInp = document.createElement("input");
-      nameInp.type = "text";
-      nameInp.value = sm.name;
-      nameInp.placeholder = "Nome supermercato";
-      nameRow.appendChild(nameInp);
-      
-      var logoRow = document.createElement("div");
-      logoRow.className = "form-row";
-      var logoUrlInp = document.createElement("input");
-      logoUrlInp.type = "text";
-      logoUrlInp.value = (sm.logo && !sm.logo.startsWith("data:")) ? sm.logo : "";
-      logoUrlInp.placeholder = "URL logo (opzionale)";
-      var logoFileInp = document.createElement("input");
-      logoFileInp.type = "file";
-      logoFileInp.accept = "image/*";
-      logoRow.appendChild(logoUrlInp);
-      logoRow.appendChild(logoFileInp);
-      
-      var previewRow = document.createElement("div");
-      previewRow.style.cssText = "display:flex;align-items:center;gap:10px;";
-      if (sm.logo) {
-        var previewImg = document.createElement("img");
-        previewImg.src = sm.logo;
-        previewImg.style.cssText = "width:40px;height:40px;object-fit:contain;border-radius:6px;background:#fff;padding:4px;";
-        var previewLabel = document.createElement("span");
-        previewLabel.style.cssText = "font-size:0.8rem;color:var(--soft);";
-        previewLabel.textContent = "Logo attuale";
-        previewRow.appendChild(previewImg);
-        previewRow.appendChild(previewLabel);
-      }
-      
-      var actions = document.createElement("div");
-      actions.className = "edit-actions";
-      var saveBtn = document.createElement("button");
-      saveBtn.type = "button";
-      saveBtn.className = "edit-save";
-      saveBtn.textContent = "✓ Salva";
-      var cancelBtn = document.createElement("button");
-      cancelBtn.type = "button";
-      cancelBtn.className = "edit-cancel";
-      cancelBtn.textContent = "Annulla";
-      
-      saveBtn.addEventListener("click", function() {
-        var newName = nameInp.value.trim();
-        if (!newName) { nameInp.focus(); return; }
-        
-        var newLogoUrl = logoUrlInp.value.trim();
-        
-        if (logoFileInp.files && logoFileInp.files[0]) {
-          var reader = new FileReader();
-          reader.onload = function(e) {
-            sm.name = newName;
-            sm.logo = e.target.result;
-            if (configured && dbRefSupermarkets) {
-              setSyncState("syncing", "Salvataggio…");
-              dbRefSupermarkets.child(id).set(sm);
-            } else {
-              saveLocal();
-            }
-            toast("✏️ Supermercato modificato!");
-          };
-          reader.readAsDataURL(logoFileInp.files[0]);
-        } else {
-          sm.name = newName;
-          if (newLogoUrl) sm.logo = newLogoUrl;
-          if (configured && dbRefSupermarkets) {
-            setSyncState("syncing", "Salvataggio…");
-            dbRefSupermarkets.child(id).set(sm);
-          } else {
-            saveLocal();
-          }
-          toast("✏️ Supermercato modificato!");
-        }
-      });
-      
-      cancelBtn.addEventListener("click", function() {
-        renderSupermarketsList();
-      });
-      
-      actions.appendChild(saveBtn);
-      actions.appendChild(cancelBtn);
-      
-      itemEl.appendChild(nameRow);
-      itemEl.appendChild(logoRow);
-      if (previewRow.children.length > 0) itemEl.appendChild(previewRow);
-      itemEl.appendChild(actions);
-      
-      nameInp.focus();
-      nameInp.select();
-    }
-
-    function selectSupermarket(id) {
-      currentSupermarketId = id || null;
-      if (id) localStorage.setItem("currentSupermarketId", id);
-      else localStorage.removeItem("currentSupermarketId");
-      renderSupermarketSelector();
-      updatePricesInList();
-    }
-
-    function renderSupermarketSelector() {
-      var select = document.getElementById("supermarketSelect");
-      var logoImg = document.getElementById("headerSupermarketLogo");
-      select.innerHTML = '<option value="">Nessun supermercato</option>';
-      
-      var smIds = Object.keys(supermarkets).sort(function(a, b) {
-        return (supermarkets[a].created || 0) - (supermarkets[b].created || 0);
-      });
-      
-      smIds.forEach(function(id) {
-        var sm = supermarkets[id];
-        var opt = document.createElement("option");
-        opt.value = id;
-        opt.textContent = sm.name;
-        if (id === currentSupermarketId) {
-          opt.selected = true;
-          if (sm.logo) {
-            logoImg.src = sm.logo;
-            logoImg.style.display = "block";
-          } else {
-            logoImg.style.display = "none";
-          }
-        }
-        select.appendChild(opt);
-      });
-      
-      if (!currentSupermarketId) logoImg.style.display = "none";
-    }
-
-    function renderSupermarketsList() {
-      var container = document.getElementById("supermarketsList");
-      container.innerHTML = "";
-      
-      var smIds = Object.keys(supermarkets).sort(function(a, b) {
-        return (supermarkets[a].created || 0) - (supermarkets[b].created || 0);
-      });
-      
-      if (smIds.length === 0) {
-        container.innerHTML = '<p style="text-align:center;color:var(--soft);font-style:italic;">Nessun supermercato aggiunto</p>';
-        return;
-      }
-      
-      smIds.forEach(function(id) {
-        var sm = supermarkets[id];
-        var item = document.createElement("div");
-        item.className = "supermarket-item";
-        item.dataset.smid = id;
-        
-        var logo = sm.logo ? '<img class="supermarket-item-logo" src="' + sm.logo + '" alt="' + sm.name + '" />' : 
-                   '<div class="supermarket-item-logo" style="display:flex;align-items:center;justify-content:center;background:var(--line);color:var(--soft);font-size:1.2rem;">🏪</div>';
-        
-        item.innerHTML = 
-          '<div class="supermarket-item-main">' +
-            logo +
-            '<div class="supermarket-item-info">' +
-              '<div class="supermarket-item-name">' + sm.name + '</div>' +
-            '</div>' +
-            '<div class="supermarket-item-actions">' +
-              '<button class="btn-icon" data-edit-sm="' + id + '" title="Modifica">✏️</button>' +
-              '<button class="btn-icon delete" data-delete-sm="' + id + '" title="Elimina">🗑</button>' +
-            '</div>' +
-          '</div>';
-        
-        container.appendChild(item);
-      });
-      
-      container.querySelectorAll('[data-edit-sm]').forEach(function(btn) {
-        btn.addEventListener('click', function() { editSupermarket(this.getAttribute('data-edit-sm')); });
-      });
-      container.querySelectorAll('[data-delete-sm]').forEach(function(btn) {
-        btn.addEventListener('click', function() { deleteSupermarket(this.getAttribute('data-delete-sm')); });
-      });
-    }
-
-    function addProduct() {
-      var nameInput = document.getElementById("productNameInput");
-      var catSelect = document.getElementById("productCatSelect");
-      var name = nameInput.value.trim();
-      if (!name) { toast("Inserisci il nome del prodotto!"); nameInput.focus(); return; }
-      
-      var existing = findProductByName(name);
-      if (existing) {
-        if (!confirm('Esiste già un prodotto "' + name + '" nel catalogo.\nVuoi modificarlo?')) {
-          return;
-        }
-        editProduct(existing.id);
-        nameInput.value = "";
-        return;
-      }
-      
-      var id = "prod_" + Date.now();
-      var product = {
-        id: id, name: name, cat: catSelect.value,
-        prices: {}, created: Date.now()
-      };
-      
-      Object.keys(supermarkets).forEach(function(smId) {
-        product.prices[smId] = { price: 0 };
-      });
-      
-      if (configured && dbRefProducts) {
-        setSyncState("syncing", "Salvataggio…");
-        dbRefProducts.child(id).set(product);
-      } else {
-        products[id] = product;
-        saveLocal();
-      }
-      toast("✨ Prodotto aggiunto!");
-      nameInput.value = "";
-      nameInput.focus();
-    }
-
-    function deleteProduct(id) {
-      if (!confirm("Eliminare questo prodotto?")) return;
-      if (configured && dbRefProducts) {
-        setSyncState("syncing", "Eliminazione…");
-        dbRefProducts.child(id).remove();
-      } else {
-        delete products[id];
-        delete expandedProducts[id];
-        saveLocal();
-      }
-      toast("🗑 Prodotto eliminato");
-    }
-
-    function toggleProductExpand(id) {
-      if (expandedProducts[id]) {
-        delete expandedProducts[id];
-      } else {
-        expandedProducts[id] = true;
-      }
-      renderProductsList();
-    }
-
-    function editProduct(id) {
-      var prod = products[id];
-      if (!prod) return;
-      
-      expandedProducts[id] = true;
-      
-      var container = document.getElementById("productsList");
-      var itemEl = container.querySelector('[data-prodid="' + id + '"]');
-      if (!itemEl) return;
-      
-      itemEl.classList.add("editing");
-      itemEl.innerHTML = '';
-      
-      var nameRow = document.createElement("div");
-      nameRow.className = "form-row";
-      var nameInp = document.createElement("input");
-      nameInp.type = "text";
-      nameInp.value = prod.name;
-      nameInp.placeholder = "Nome prodotto";
-      var catSel = document.createElement("select");
-      ALL_CATS.forEach(function(c) {
-        var o = document.createElement("option");
-        o.value = c; o.textContent = c;
-        if (c === prod.cat) o.selected = true;
-        catSel.appendChild(o);
-      });
-      nameRow.appendChild(nameInp);
-      nameRow.appendChild(catSel);
-      
-      var pricesContainer = document.createElement("div");
-      pricesContainer.style.cssText = "display:flex;flex-direction:column;gap:8px;margin-top:8px;";
-      
-      var smIds = Object.keys(supermarkets).sort(function(a, b) {
-        return (supermarkets[a].created || 0) - (supermarkets[b].created || 0);
-      });
-      
-      var priceInputs = {};
-      
-      if (smIds.length === 0) {
-        var hint = document.createElement("div");
-        hint.className = "no-sm-hint";
-        hint.textContent = "Nessun supermercato creato. Aggiungine uno nelle Impostazioni per impostare i prezzi.";
-        pricesContainer.appendChild(hint);
-      } else {
-        smIds.forEach(function(smId) {
-          var sm = supermarkets[smId];
-          var row = document.createElement("div");
-          row.className = "price-row";
-          
-          if (sm.logo) {
-            var logo = document.createElement("img");
-            logo.className = "price-row-logo";
-            logo.src = sm.logo;
-            logo.alt = sm.name;
-            row.appendChild(logo);
-          }
-          
-          var nameSpan = document.createElement("span");
-          nameSpan.className = "price-row-name";
-          nameSpan.textContent = sm.name;
-          row.appendChild(nameSpan);
-          
-          var priceWrapper = document.createElement("div");
-          priceWrapper.className = "price-input-wrapper";
-          var priceSymbol = document.createElement("span");
-          priceSymbol.className = "price-input-symbol";
-          priceSymbol.textContent = "€";
-          var priceInp = document.createElement("input");
-          priceInp.type = "number";
-          priceInp.className = "price-row-input";
-          priceInp.step = "0.01";
-          priceInp.min = "0";
-          priceInp.placeholder = "0.00";
-          priceInp.value = (prod.prices && prod.prices[smId] && prod.prices[smId].price) ? prod.prices[smId].price : "";
-          priceInputs[smId] = priceInp;
-          priceWrapper.appendChild(priceSymbol);
-          priceWrapper.appendChild(priceInp);
-          row.appendChild(priceWrapper);
-          
-          pricesContainer.appendChild(row);
-        });
-      }
-      
-      var actions = document.createElement("div");
-      actions.className = "edit-actions";
-      actions.style.marginTop = "10px";
-      var saveBtn = document.createElement("button");
-      saveBtn.type = "button";
-      saveBtn.className = "edit-save";
-      saveBtn.textContent = "✓ Salva";
-      var cancelBtn = document.createElement("button");
-      cancelBtn.type = "button";
-      cancelBtn.className = "edit-cancel";
-      cancelBtn.textContent = "Annulla";
-      
-      saveBtn.addEventListener("click", function() {
-        var newName = nameInp.value.trim();
-        if (!newName) { nameInp.focus(); return; }
-        
-        prod.name = newName;
-        prod.cat = catSel.value;
-        if (!prod.prices) prod.prices = {};
-        
-        Object.keys(priceInputs).forEach(function(smId) {
-          var val = parseFloat(priceInputs[smId].value) || 0;
-          prod.prices[smId] = { price: val };
-        });
-        
-        if (configured && dbRefProducts) {
-          setSyncState("syncing", "Salvataggio…");
-          dbRefProducts.child(id).set(prod);
-        } else {
-          saveLocal();
-        }
-        toast("✏️ Prodotto modificato!");
-      });
-      
-      cancelBtn.addEventListener("click", function() {
-        renderProductsList();
-      });
-      
-      actions.appendChild(saveBtn);
-      actions.appendChild(cancelBtn);
-      
-      itemEl.appendChild(nameRow);
-      itemEl.appendChild(pricesContainer);
-      itemEl.appendChild(actions);
-      
-      nameInp.focus();
-      nameInp.select();
-    }
-
-    function updateProductPrice(productId, supermarketId, value) {
-      var prod = products[productId];
-      if (!prod) return;
-      if (!prod.prices) prod.prices = {};
-      if (!prod.prices[supermarketId]) prod.prices[supermarketId] = {};
-      prod.prices[supermarketId].price = parseFloat(value) || 0;
-      
-      if (configured && dbRefProducts) {
-        dbRefProducts.child(productId + "/prices/" + supermarketId).set({ price: prod.prices[supermarketId].price });
-      } else {
-        saveLocal();
-      }
-    }
-
-    function addProductToList(productId) {
-      var prod = products[productId];
-      if (!prod) return;
-      
-      var list = getCurrentList();
-      var price = 0;
-      
-      if (currentSupermarketId && prod.prices && prod.prices[currentSupermarketId]) {
-        price = prod.prices[currentSupermarketId].price || 0;
-      }
-      
-      var it = newItem(prod.name, "1", price, prod.cat);
-      it.fromProduct = productId;
-      
-      if (configured && dbRefLists) {
-        setSyncState("syncing", "Salvataggio…");
-        dbRefLists.child(currentListId + "/items/" + it.id).set(it);
-        list.items.unshift(it);
-        render();
-      } else {
-        list.items.unshift(it);
-        saveLocal();
-        render();
-      }
-      
-      toast("🛍️ " + prod.name + " aggiunto alla lista");
-    }
-
-    function setProductFilter(f) {
-      productFilter = f;
-      renderProductsList();
-    }
-
-    function setProductSearch(s) {
-      productSearch = s.toLowerCase().trim();
-      document.getElementById("btnClearSearch").style.display = s ? "block" : "none";
-      renderProductsList();
-    }
-
-    function renderProductsList() {
-      var container = document.getElementById("productsList");
-      container.innerHTML = "";
-      
-      var allProdIds = Object.keys(products).sort(function(a, b) {
-        return (products[b].created || 0) - (products[a].created || 0);
-      });
-      
-      var filteredIds = allProdIds;
-      if (productSearch) {
-        filteredIds = allProdIds.filter(function(id) {
-          return products[id].name.toLowerCase().indexOf(productSearch) >= 0;
-        });
-      }
-      
-      var catsCount = {};
-      allProdIds.forEach(function(id) {
-        var cat = products[id].cat;
-        catsCount[cat] = (catsCount[cat] || 0) + 1;
-      });
-      
-      if (productFilter !== "tutti") {
-        filteredIds = filteredIds.filter(function(id) {
-          return products[id].cat === productFilter;
-        });
-      }
-      
-      document.getElementById("productsCount").textContent = allProdIds.length;
-      
-      var filtersEl = document.getElementById("productFilters");
-      filtersEl.innerHTML = "";
-      var catKeys = Object.keys(catsCount);
-      if (catKeys.length > 0) {
-        var allBtn = document.createElement("button");
-        allBtn.type = "button";
-        allBtn.className = "fbtn" + (productFilter === "tutti" ? " on" : "");
-        allBtn.textContent = "Tutti (" + allProdIds.length + ")";
-        allBtn.addEventListener("click", function() { setProductFilter("tutti"); });
-        filtersEl.appendChild(allBtn);
-        
-        catKeys.sort().forEach(function(cat) {
-          var btn = document.createElement("button");
-          btn.type = "button";
-          btn.className = "fbtn" + (productFilter === cat ? " on" : "");
-          btn.textContent = cat + " (" + catsCount[cat] + ")";
-          btn.addEventListener("click", (function(c) { return function() { setProductFilter(c); }; })(cat));
-          filtersEl.appendChild(btn);
-        });
-      }
-      
-      if (filteredIds.length === 0) {
-        if (allProdIds.length === 0) {
-          container.innerHTML = '<p class="products-empty">Nessun prodotto creato.<br/>Aggiungi prodotti per averli sempre pronti con i prezzi!</p>';
-        } else {
-          container.innerHTML = '<p class="products-empty">Nessun prodotto trovato' + (productSearch ? ' per "' + productSearch + '"' : '') + '.</p>';
-        }
-        return;
-      }
-      
-      var smIds = Object.keys(supermarkets).sort(function(a, b) {
-        return (supermarkets[a].created || 0) - (supermarkets[b].created || 0);
-      });
-      
-      filteredIds.forEach(function(id) {
-        var prod = products[id];
-        var item = document.createElement("div");
-        item.className = "product-item" + (expandedProducts[id] ? " expanded" : "");
-        item.dataset.prodid = id;
-        
-        var col = COLORS[prod.cat] || "#999";
-        
-        var mainHtml = 
-          '<div class="product-item-main">' +
-            '<div class="product-item-logo" style="display:flex;align-items:center;justify-content:center;background:var(--line);color:' + col + ';font-size:1.3rem;">' + (prod.cat ? prod.cat.split(' ')[0] : '📦') + '</div>' +
-            '<div class="product-item-info">' +
-              '<div class="product-item-name">' + prod.name + '</div>' +
-              '<div class="product-item-cat">' + prod.cat + '</div>' +
-            '</div>' +
-            '<span class="product-expand-indicator">▶</span>' +
-            '<div class="product-item-actions">' +
-              '<button class="btn-icon add-to-list" data-add-prod="' + id + '" title="Aggiungi alla lista">➕</button>' +
-              '<button class="btn-icon" data-edit-prod="' + id + '" title="Modifica">✏️</button>' +
-              '<button class="btn-icon delete" data-delete-prod="' + id + '" title="Elimina">🗑</button>' +
-            '</div>' +
-          '</div>';
-        
-        item.innerHTML = mainHtml;
-        
-        var mainEl = item.querySelector('.product-item-main');
-        mainEl.addEventListener('click', function(e) {
-          if (e.target.closest('.btn-icon') || e.target.closest('.product-item-actions')) return;
-          toggleProductExpand(id);
-        });
-        
-        if (smIds.length > 0) {
-          var pricesDiv = document.createElement("div");
-          pricesDiv.className = "product-prices";
-          
-          smIds.forEach(function(smId) {
-            var sm = supermarkets[smId];
-            var price = (prod.prices && prod.prices[smId] && prod.prices[smId].price) ? prod.prices[smId].price : 0;
-            
-            var row = document.createElement("div");
-            row.className = "price-row";
-            
-            if (sm.logo) {
-              var logo = document.createElement("img");
-              logo.className = "price-row-logo";
-              logo.src = sm.logo;
-              logo.alt = sm.name;
-              row.appendChild(logo);
-            } else {
-              var logoPlaceholder = document.createElement("div");
-              logoPlaceholder.className = "price-row-logo";
-              logoPlaceholder.style.cssText = "display:flex;align-items:center;justify-content:center;font-size:0.9rem;";
-              logoPlaceholder.textContent = "🏪";
-              row.appendChild(logoPlaceholder);
-            }
-            
-            var nameSpan = document.createElement("span");
-            nameSpan.className = "price-row-name";
-            nameSpan.textContent = sm.name;
-            row.appendChild(nameSpan);
-            
-            var priceWrapper = document.createElement("div");
-            priceWrapper.className = "price-input-wrapper";
-            var priceSymbol = document.createElement("span");
-            priceSymbol.className = "price-input-symbol";
-            priceSymbol.textContent = "€";
-            var priceInp = document.createElement("input");
-            priceInp.type = "number";
-            priceInp.className = "price-row-input";
-            priceInp.step = "0.01";
-            priceInp.min = "0";
-            priceInp.placeholder = "0.00";
-            priceInp.value = price > 0 ? price : "";
-            priceInp.dataset.pid = id;
-            priceInp.dataset.smid = smId;
-            priceInp.addEventListener("change", function() {
-              updateProductPrice(this.dataset.pid, this.dataset.smid, this.value);
-            });
-            priceInp.addEventListener("blur", function() {
-              updateProductPrice(this.dataset.pid, this.dataset.smid, this.value);
-            });
-            priceInp.addEventListener("click", function(e) { e.stopPropagation(); });
-            priceWrapper.appendChild(priceSymbol);
-            priceWrapper.appendChild(priceInp);
-            row.appendChild(priceWrapper);
-            
-            pricesDiv.appendChild(row);
-          });
-          
-          item.appendChild(pricesDiv);
-        } else {
-          var hint = document.createElement("div");
-          hint.className = "no-sm-hint product-prices";
-          hint.textContent = "Crea un supermercato nelle Impostazioni per impostare i prezzi";
-          item.appendChild(hint);
-        }
-        
-        container.appendChild(item);
-      });
-      
-      container.querySelectorAll('[data-add-prod]').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          addProductToList(this.getAttribute('data-add-prod'));
-        });
-      });
-      container.querySelectorAll('[data-edit-prod]').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          editProduct(this.getAttribute('data-edit-prod'));
-        });
-      });
-      container.querySelectorAll('[data-delete-prod]').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          deleteProduct(this.getAttribute('data-delete-prod'));
-        });
-      });
-    }
-
-    function exportData() {
-      var backup = {
-        version: 4,
-        exportedAt: Date.now(),
-        exportedAtHuman: new Date().toLocaleString("it-IT"),
-        lists: lists,
-        supermarkets: supermarkets,
-        products: products,
-        currentListId: currentListId,
-        currentSupermarketId: currentSupermarketId
-      };
-      
-      var jsonStr = JSON.stringify(backup, null, 2);
-      var blob = new Blob([jsonStr], { type: "application/json" });
-      var url = URL.createObjectURL(blob);
-      
-      var date = new Date();
-      var dateStr = date.getFullYear() + "-" + 
-                    String(date.getMonth() + 1).padStart(2, "0") + "-" + 
-                    String(date.getDate()).padStart(2, "0");
-      var filename = "lista-spesa-backup-" + dateStr + ".json";
-      
-      var a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      toast("📤 Backup esportato: " + filename);
-    }
-
-    function importData(file) {
-      var reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          var data = JSON.parse(e.target.result);
-          
-          if (!data || typeof data !== "object") {
-            toast("⚠️ File non valido");
-            return;
-          }
-          
-          if (!data.lists && !data.supermarkets && !data.products) {
-            toast("⚠️ File non contiene dati validi");
-            return;
-          }
-          
-          var listsCount = data.lists ? Object.keys(data.lists).length : 0;
-          var smCount = data.supermarkets ? Object.keys(data.supermarkets).length : 0;
-          var prodCount = data.products ? Object.keys(data.products).length : 0;
-          var info = "Importare:\n• " + listsCount + " liste\n• " + smCount + " supermercati\n• " + prodCount + " prodotti";
-          if (data.exportedAtHuman) info += "\n\nBackup creato il: " + data.exportedAtHuman;
-          info += "\n\n⚠️ I dati attuali verranno SOSTITUITI.";
-          
-          if (!confirm(info)) return;
-          
-          setSyncState("syncing", "Importazione…");
-          
-          if (data.lists && dbRefLists) {
-            dbRefLists.set(data.lists).catch(function(err) {
-              console.error("Errore import liste:", err);
-            });
-          }
-          
-          if (data.supermarkets && dbRefSupermarkets) {
-            dbRefSupermarkets.set(data.supermarkets).catch(function(err) {
-              console.error("Errore import supermercati:", err);
-            });
-          }
-          
-          if (data.products && dbRefProducts) {
-            dbRefProducts.set(data.products).catch(function(err) {
-              console.error("Errore import prodotti:", err);
-            });
-          }
-          
-          if (data.currentListId) {
-            localStorage.setItem("currentListId", data.currentListId);
-            savedListId = data.currentListId;
-          }
-          
-          if (data.currentSupermarketId) {
-            localStorage.setItem("currentSupermarketId", data.currentSupermarketId);
-          } else {
-            localStorage.removeItem("currentSupermarketId");
-          }
-          
-          toast("📥 Dati importati con successo! Sincronizzazione in corso…");
-          
-        } catch (err) {
-          console.error("Errore importazione:", err);
-          toast("⚠️ Errore nel leggere il file: " + err.message);
-        }
-      };
-      reader.readAsText(file);
-    }
-
-    function parseQty(qty) {
-      if (!qty || qty.toString().trim() === "") return 1;
-      var num = parseFloat(qty);
-      if (isNaN(num) || num <= 0) return 1;
-      return num;
-    }
-
-    // MODIFICATA: Ora somma TUTTI gli articoli, inclusi quelli spuntati e quelli in "Prodotti Presi"
-    function calculateTotal() {
-      if (!currentSupermarketId) return 0;
-      var list = getCurrentList();
-      var total = 0;
-      
-      // Somma articoli nella lista principale (anche se spuntati/done)
-      if (list.items) {
-        list.items.forEach(function(item) {
-          var qty = parseQty(item.qty);
-          total += (item.price || 0) * qty;
-        });
-      }
-      
-      // Somma anche gli articoli nella sezione "Prodotti Presi"
-      if (list.taken) {
-        list.taken.forEach(function(item) {
-          var qty = parseQty(item.qty);
-          total += (item.price || 0) * qty;
-        });
-      }
-      
-      return total;
-    }
-
-    function setFilter(f) { filter = f; render(); }
-
-    function switchList(listId) {
-      if (!lists[listId]) return;
-      currentListId = listId;
-      localStorage.setItem("currentListId", listId);
-      filter = "tutti";
-      render();
-    }
-
-    function createNewList() {
-      var name = prompt("Nome della nuova lista:", "Nuova lista");
-      if (!name || !name.trim()) return;
-      var id = "list_" + Date.now();
-      var newList = { name: name.trim(), items: [], taken: [], created: Date.now() };
-      if (configured && dbRefLists) {
-        setSyncState("syncing", "Creazione…");
-        dbRefLists.child(id).set(newList);
-      } else {
-        lists[id] = newList; currentListId = id;
-        localStorage.setItem("currentListId", id);
-        saveLocal(); renderListSelector(); render();
-        toast('✨ Lista "' + name + '" creata');
-      }
-    }
-
-    function renameList() {
-      var list = getCurrentList();
-      if (!list) return;
-      var name = prompt("Rinomina la lista:", list.name);
-      if (!name || !name.trim()) return;
-      list.name = name.trim();
-      if (configured && dbRefLists) {
-        setSyncState("syncing", "Salvataggio…");
-        dbRefLists.child(currentListId + "/name").set(list.name);
-      } else { saveLocal(); }
-      renderListSelector();
-      toast("✏️ Lista rinominata");
-    }
-
-    function deleteList() {
-      if (Object.keys(lists).length <= 1) { toast("Non puoi eliminare l'unica lista!"); return; }
-      var list = getCurrentList();
-      var total = list.items.length + list.taken.length;
-      var msg = 'Eliminare la lista "' + list.name + '"';
-      if (total > 0) msg += " con tutti i suoi " + total + " articoli";
-      msg += "?";
-      if (!confirm(msg)) return;
-      if (configured && dbRefLists) {
-        setSyncState("syncing", "Eliminazione…");
-        dbRefLists.child(currentListId).remove();
-      } else {
-        delete lists[currentListId];
-        currentListId = Object.keys(lists)[0];
-        localStorage.setItem("currentListId", currentListId);
-        saveLocal(); renderListSelector(); render();
-        toast("🗑 Lista eliminata");
-      }
-    }
-
-    function renderListSelector() {
-      var select = document.getElementById("listSelect");
-      select.innerHTML = "";
-      var listIds = Object.keys(lists).sort(function (a, b) { return (lists[b].created || 0) - (lists[a].created || 0); });
-      listIds.forEach(function (id) {
-        var opt = document.createElement("option");
-        opt.value = id;
-        var list = lists[id];
-        var itemCount = (list.items ? list.items.length : 0) + (list.taken ? list.taken.length : 0);
-        opt.textContent = list.name + " (" + itemCount + ")";
-        if (id === currentListId) opt.selected = true;
-        select.appendChild(opt);
-      });
-    }
-
-    function toggleTakenSection() {
-      var section = document.getElementById("takenSection");
-      var btn = document.getElementById("btnShowTaken");
-      section.classList.toggle("collapsed");
-      btn.classList.toggle("on", !section.classList.contains("collapsed"));
-    }
-
-    function toggleProductsSection() {
-      var section = document.getElementById("productsSection");
-      var btn = document.getElementById("btnShowProducts");
-      section.classList.toggle("collapsed");
-      btn.classList.toggle("on", !section.classList.contains("collapsed"));
-    }
-
-    function toggleSettingsSection() {
-      var section = document.getElementById("settingsSection");
-      var btn = document.getElementById("btnShowSettings");
-      section.classList.toggle("collapsed");
-      btn.classList.toggle("on", !section.classList.contains("collapsed"));
-    }
-
-    function render() {
-      var list = getCurrentList();
-      if (!list) return;
-      if (!list.items) list.items = [];
-      if (!list.taken) list.taken = [];
-      var items = list.items, taken = list.taken;
-      var total = items.length;
-      var done = items.filter(function (x) { return x.done; }).length;
-      var takenCount = taken.length;
-
-      var selectedSupermarket = currentSupermarketId ? supermarkets[currentSupermarketId] : null;
-      var smText = selectedSupermarket ? " · " + selectedSupermarket.name : "";
-      document.getElementById("sub").textContent = list.name + smText + " · " +
-        (total === 0 ? "Nessun articolo" : done === total && total > 0 ? "🎉 Tutti spuntati!" : total - done + " da prendere");
-
-      // Aggiorna il totale compatto nell'header
-      var totalAmount = calculateTotal();
-      var headerTotal = document.getElementById("headerTotal");
-      var headerTotalAmount = document.getElementById("headerTotalAmount");
-      
-      if (totalAmount > 0) {
-        headerTotal.style.display = "flex";
-        headerTotalAmount.textContent = "€" + totalAmount.toFixed(2);
-      } else {
-        headerTotal.style.display = "none";
-      }
-
-      var cats = ["tutti"];
-      items.forEach(function (x) { if (cats.indexOf(x.cat) < 0) cats.push(x.cat); });
-      var fe = document.getElementById("filters"); fe.innerHTML = "";
-      cats.forEach(function (c) {
-        var b = document.createElement("button"); b.type = "button";
-        b.className = "fbtn" + (filter === c ? " on" : "");
-        b.textContent = c === "tutti" ? "Tutti (" + total + ")" : c;
-        b.addEventListener("click", (function (cc) { return function () { setFilter(cc); }; })(c));
-        fe.appendChild(b);
-      });
-
-      var src = filter === "tutti" ? items.slice() : items.filter(function (x) { return x.cat === filter; });
-      src.sort(function (a, b) { return (a.done ? 1 : 0) - (b.done ? 1 : 0) || (b.ts || 0) - (a.ts || 0); });
-      document.getElementById("empty").style.display = total === 0 && filter === "tutti" ? "block" : "none";
-      var le = document.getElementById("list"); le.innerHTML = "";
-
-      src.forEach(function (item) {
-        var col = COLORS[item.cat] || "#999";
-        var li = document.createElement("li");
-        li.className = "item" + (item.done ? " done" : "");
-        li.dataset.lid = item.id;
-
-        var chk = document.createElement("div");
-        chk.className = "chk";
-        chk.textContent = item.done ? "✓" : "";
-        chk.addEventListener("click", function (e) { e.stopPropagation(); toggleDone(item.id); });
-
-        var bd = document.createElement("div"); bd.className = "ibody";
-        bd.addEventListener("click", function () { moveToTaken(item.id); });
-
-        var nm = document.createElement("div"); nm.className = "iname"; nm.textContent = item.name;
-        var mt = document.createElement("div"); mt.className = "imeta";
-        if (item.qty) {
-          var qs = document.createElement("b"); qs.textContent = item.qty; mt.appendChild(qs);
-          var sp = document.createElement("span"); sp.style.color = "#ddd"; sp.textContent = " · "; mt.appendChild(sp);
-        }
-        if (item.price && currentSupermarketId) {
-          var qty = parseQty(item.qty);
-          var subtotal = item.price * qty;
-          var pr = document.createElement("span");
-          pr.className = "price-tag";
-          if (qty > 1) {
-            pr.textContent = "€" + item.price.toFixed(2) + " × " + qty + " = €" + subtotal.toFixed(2);
-          } else {
-            pr.textContent = "€" + item.price.toFixed(2);
-          }
-          mt.appendChild(pr);
-          var sp2 = document.createElement("span"); sp2.style.color = "#ddd"; sp2.textContent = " · "; mt.appendChild(sp2);
-        }
-        var dot = document.createElement("span"); dot.className = "dot"; dot.style.background = col; mt.appendChild(dot);
-        var cs = document.createElement("span"); cs.textContent = " " + item.cat; mt.appendChild(cs);
-        bd.appendChild(nm); bd.appendChild(mt);
-
-        var eb = document.createElement("button"); eb.type = "button"; eb.className = "edit-btn"; eb.textContent = "✏️"; eb.title = "Modifica";
-        eb.addEventListener("click", function (e) { e.stopPropagation(); editItem(item.id); });
-
-        var db2 = document.createElement("button"); db2.type = "button"; db2.className = "del"; db2.textContent = "✕";
-        db2.addEventListener("click", function (e) { e.stopPropagation(); delItem(item.id); });
-
-        li.appendChild(chk); li.appendChild(bd); li.appendChild(eb); li.appendChild(db2);
-        le.appendChild(li);
-      });
-
-      document.getElementById("takenCount").textContent = takenCount;
-      var takenList = document.getElementById("takenList"); takenList.innerHTML = "";
-
-      if (takenCount === 0) {
-        var emptyDiv = document.createElement("div");
-        emptyDiv.className = "taken-empty";
-        emptyDiv.textContent = "Nessun prodotto preso ancora";
-        takenList.appendChild(emptyDiv);
-      } else {
-        taken.sort(function (a, b) { return (b.takenAt || 0) - (a.takenAt || 0); });
-        taken.forEach(function (item) {
-          var col = COLORS[item.cat] || "#999";
-          var li = document.createElement("li"); li.className = "item taken"; li.dataset.lid = item.id;
-          var bd = document.createElement("div"); bd.className = "ibody"; bd.style.cursor = "default";
-          var nm = document.createElement("div"); nm.className = "iname"; nm.textContent = item.name;
-          var mt = document.createElement("div"); mt.className = "imeta";
-          if (item.qty) {
-            var qs = document.createElement("b"); qs.textContent = item.qty; mt.appendChild(qs);
-            var sp = document.createElement("span"); sp.style.color = "#ccc"; sp.textContent = " · "; mt.appendChild(sp);
-          }
-          if (item.price && currentSupermarketId) {
-            var pr = document.createElement("span"); pr.className = "price-tag"; pr.textContent = "€" + item.price.toFixed(2); mt.appendChild(pr);
-            var sp2 = document.createElement("span"); sp2.style.color = "#ccc"; sp2.textContent = " · "; mt.appendChild(sp2);
-          }
-          var dot = document.createElement("span"); dot.className = "dot"; dot.style.background = col; mt.appendChild(dot);
-          var cs = document.createElement("span"); cs.textContent = " " + item.cat; mt.appendChild(cs);
-          bd.appendChild(nm); bd.appendChild(mt);
-
-          var restoreBtn = document.createElement("button"); restoreBtn.type = "button"; restoreBtn.className = "restore-btn"; restoreBtn.textContent = "↩️"; restoreBtn.title = "Ripristina nella lista";
-          restoreBtn.addEventListener("click", function () { restoreItem(item.id); });
-
-          var toProdBtn = document.createElement("button"); toProdBtn.type = "button"; toProdBtn.className = "to-products-btn"; toProdBtn.textContent = "🛍️"; toProdBtn.title = "Sposta al catalogo Prodotti";
-          toProdBtn.addEventListener("click", function () { moveToProducts(item.id); });
-
-          li.appendChild(bd); li.appendChild(restoreBtn); li.appendChild(toProdBtn); takenList.appendChild(li);
-        });
-      }
-      renderListSelector();
-    }
-
-    document.getElementById("addBtn").addEventListener("click", addItem);
-    document.getElementById("itemInput").addEventListener("keydown", function (e) { if (e.key === "Enter") addItem(); });
-    document.getElementById("btnRm").addEventListener("click", removeChecked);
-    document.getElementById("btnCl").addEventListener("click", clearAll);
-    document.getElementById("btnPr").addEventListener("click", function () {
-      var list = getCurrentList();
-      if (!list.items.length && !list.taken.length) { toast("La lista è vuota!"); return; }
-      window.print();
-    });
-    document.getElementById("btnShowTaken").addEventListener("click", toggleTakenSection);
-    document.getElementById("takenHeader").addEventListener("click", toggleTakenSection);
-    document.getElementById("btnClearTaken").addEventListener("click", clearTaken);
-    document.getElementById("btnRestoreAll").addEventListener("click", restoreAllTaken);
-    document.getElementById("btnShowProducts").addEventListener("click", toggleProductsSection);
-    document.getElementById("productsHeader").addEventListener("click", toggleProductsSection);
-    document.getElementById("btnAddProduct").addEventListener("click", addProduct);
-    document.getElementById("productNameInput").addEventListener("keydown", function(e) { if (e.key === "Enter") addProduct(); });
-    document.getElementById("btnShowSettings").addEventListener("click", toggleSettingsSection);
-    document.getElementById("settingsHeader").addEventListener("click", toggleSettingsSection);
-    document.getElementById("listSelect").addEventListener("change", function (e) { switchList(e.target.value); });
-    document.getElementById("supermarketSelect").addEventListener("change", function (e) { selectSupermarket(e.target.value || null); });
-    document.getElementById("btnAddSupermarket").addEventListener("click", addSupermarket);
-    document.getElementById("btnNewList").addEventListener("click", createNewList);
-    document.getElementById("btnRename").addEventListener("click", renameList);
-    document.getElementById("btnDeleteList").addEventListener("click", deleteList);
-    
-    document.getElementById("itemInput").addEventListener("input", function(e) {
-      showSuggestions(e.target.value);
-    });
-
-    document.getElementById("itemInput").addEventListener("focus", function(e) {
-      if (e.target.value.trim().length >= 2) {
-        showSuggestions(e.target.value);
-      }
-    });
-
-    document.getElementById("itemInput").addEventListener("blur", function() {
-      setTimeout(hideSuggestions, 200);
-    });
-
-    document.getElementById("itemInput").addEventListener("keydown", function(e) {
-      if (e.key === "Escape") {
-        hideSuggestions();
-      }
-    });
-    
-    document.getElementById("productSearchInput").addEventListener("input", function(e) {
-      setProductSearch(e.target.value);
-    });
-    document.getElementById("btnClearSearch").addEventListener("click", function() {
-      document.getElementById("productSearchInput").value = "";
-      setProductSearch("");
-      document.getElementById("productSearchInput").focus();
-    });
-    
-    document.getElementById("btnExport").addEventListener("click", exportData);
-    document.getElementById("btnImportTrigger").addEventListener("click", function() {
-      document.getElementById("importFileInput").click();
-    });
-    document.getElementById("importFileInput").addEventListener("change", function(e) {
-      if (e.target.files && e.target.files[0]) {
-        importData(e.target.files[0]);
-        e.target.value = "";
-      }
-    });
-
-    initFirebase();
-  </script>
-</body>
+        <!-- Modal Modifica Archivio -->
+        <div id="editArchiveModal" class="modal">
+            <div class="modal-content modal-large">
+                <div class="modal-header">
+                    <h2>Modifica Spesa</h2>
+                    <button class="close-btn" data-close="editArchiveModal">
+                        &times;
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="archiveSupermarket">Supermercato:</label>
+                        <select id="archiveSupermarket"></select>
+                    </div>
+                    <div
+                        id="archiveProductsList"
+                        class="archive-products-edit"
+                    ></div>
+                </div>
+                <div class="modal-footer">
+                    <button
+                        class="btn btn-secondary"
+                        data-close="editArchiveModal"
+                    >
+                        Annulla
+                    </button>
+                    <button id="confirmArchiveEditBtn" class="btn btn-primary">
+                        Salva
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Modifica Supermercato -->
+        <div id="editSupermarketModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Modifica Supermercato</h2>
+                    <button class="close-btn" data-close="editSupermarketModal">
+                        &times;
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="editSmName">Nome:</label>
+                        <input type="text" id="editSmName" />
+                    </div>
+                    <div class="form-group">
+                        <label>Logo:</label>
+                        <div class="logo-preview" id="editSmLogoPreview"></div>
+                        <div class="logo-input-method">
+                            <button
+                                type="button"
+                                id="logoMethodFileBtn"
+                                class="btn btn-small btn-secondary active"
+                            >
+                                📁 File
+                            </button>
+                            <button
+                                type="button"
+                                id="logoMethodUrlBtn"
+                                class="btn btn-small btn-secondary"
+                            >
+                                🔗 URL
+                            </button>
+                        </div>
+                        <div id="logoFileInput" class="logo-input-section">
+                            <input
+                                type="file"
+                                id="editSmLogoFile"
+                                accept="image/*"
+                                class="logo-input"
+                            />
+                        </div>
+                        <div
+                            id="logoUrlInput"
+                            class="logo-input-section"
+                            style="display: none"
+                        >
+                            <input
+                                type="url"
+                                id="editSmLogoUrl"
+                                placeholder="https://esempio.com/logo.png"
+                                class="logo-url-field"
+                            />
+                            <button
+                                type="button"
+                                id="applyLogoUrlBtn"
+                                class="btn btn-small btn-primary"
+                            >
+                                Applica URL
+                            </button>
+                        </div>
+                        <button
+                            id="editSmRemoveLogo"
+                            class="btn btn-secondary btn-small"
+                        >
+                            Rimuovi logo
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button
+                        class="btn btn-secondary"
+                        data-close="editSupermarketModal"
+                    >
+                        Annulla
+                    </button>
+                    <button id="confirmEditSmBtn" class="btn btn-primary">
+                        Salva
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Crea Nuovo Prodotto (da lista) -->
+        <div id="createNewProductModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Crea nuovo prodotto</h2>
+                    <button
+                        class="close-btn"
+                        data-close="createNewProductModal"
+                    >
+                        &times;
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p class="info-text" style="margin-bottom: 12px">
+                        Il prodotto "<span id="newProdPreviewName"></span>" non
+                        esiste nel database. Crearlo?
+                    </p>
+                    <div class="form-group">
+                        <label for="newProdCategory">Categoria:</label>
+                        <select id="newProdCategory"></select>
+                    </div>
+                    <div
+                        id="newProdPricesContainer"
+                        class="prices-container"
+                    ></div>
+                </div>
+                <div class="modal-footer">
+                    <button
+                        class="btn btn-secondary"
+                        data-close="createNewProductModal"
+                    >
+                        Annulla
+                    </button>
+                    <button id="confirmCreateProdBtn" class="btn btn-primary">
+                        Crea e aggiungi
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <script src="script.js"></script>
+    </body>
 </html>
