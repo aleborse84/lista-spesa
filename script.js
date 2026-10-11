@@ -43,14 +43,21 @@ const CATEGORIES = [
 // Funzione di sicurezza per garantire che tutte le proprietà esistano
 function ensureStateIntegrity() {
   if (!state) state = {};
+
+  // Garantisce che tutti gli array esistano
   if (!Array.isArray(state.products)) state.products = [];
   if (!Array.isArray(state.shoppingList)) state.shoppingList = [];
   if (!Array.isArray(state.takenProducts)) state.takenProducts = [];
   if (!Array.isArray(state.supermarkets)) state.supermarkets = [];
   if (!Array.isArray(state.archive)) state.archive = [];
-  if (typeof state.peopleCount !== "number") state.peopleCount = 1;
-  if (typeof state.currentSupermarket !== "string")
+
+  // Garantisce che i valori numerici/stringa esistano
+  if (typeof state.peopleCount !== "number" || state.peopleCount < 1) {
+    state.peopleCount = 1;
+  }
+  if (typeof state.currentSupermarket !== "string") {
     state.currentSupermarket = "";
+  }
 
   // Migra supermarkets da array stringhe a oggetti
   if (
@@ -75,6 +82,29 @@ function ensureStateIntegrity() {
   // Assicura che ogni prodotto abbia prices
   state.products.forEach((p) => {
     if (!p.prices) p.prices = {};
+    if (!p.category) p.category = "Altri Prodotti";
+    if (!p.name) p.name = "Prodotto sconosciuto";
+  });
+
+  // Assicura che ogni item nella lista abbia quantity e unit
+  state.shoppingList.forEach((p) => {
+    if (!p.quantity) p.quantity = 1;
+    if (!p.unit) p.unit = "pz";
+    if (!p.name) p.name = "Prodotto sconosciuto";
+  });
+
+  state.takenProducts.forEach((p) => {
+    if (!p.quantity) p.quantity = 1;
+    if (!p.unit) p.unit = "pz";
+    if (!p.name) p.name = "Prodotto sconosciuto";
+  });
+
+  // Assicura che ogni voce nell'archivio abbia i campi corretti
+  state.archive.forEach((item) => {
+    if (!item.date) item.date = new Date().toISOString();
+    if (!item.supermarket) item.supermarket = "N/A";
+    if (!Array.isArray(item.products)) item.products = [];
+    if (typeof item.total !== "number") item.total = 0;
   });
 }
 
@@ -150,6 +180,9 @@ function initUI() {
       btn.classList.add("active");
       document.getElementById(btn.dataset.tab + "Tab").classList.add("active");
       if (btn.dataset.tab === "database") renderDatabase();
+      document
+        .getElementById("saveShoppingItemBtn")
+        .addEventListener("click", saveShoppingItemEdit);
     });
   });
 
@@ -402,16 +435,88 @@ function renderShoppingList() {
   });
 }
 
+let editingShoppingIndex = -1;
+
 function editShoppingItem(i) {
+  editingShoppingIndex = i;
   const p = state.shoppingList[i];
-  const newQty = prompt("Quantità:", p.quantity);
-  if (newQty === null) return;
-  const q = parseFloat(newQty);
-  if (isNaN(q) || q <= 0) return;
-  p.quantity = q;
+  const dbProd = state.products.find((x) => x.name === p.name);
+  const currentPrice = dbProd
+    ? dbProd.prices[state.currentSupermarket] || 0
+    : 0;
+
+  document.getElementById("editItemName").value = p.name;
+  document.getElementById("editItemQty").value = p.quantity;
+  document.getElementById("editItemUnit").value = p.unit;
+  document.getElementById("editItemPrice").value = currentPrice;
+  document.getElementById("editItemSmName").textContent =
+    state.currentSupermarket || "supermercato";
+
+  openModal("editShoppingItemModal");
+}
+
+function saveShoppingItemEdit() {
+  if (editingShoppingIndex < 0) return;
+
+  const newName = document.getElementById("editItemName").value.trim();
+  const newQty = parseFloat(document.getElementById("editItemQty").value);
+  const newUnit = document.getElementById("editItemUnit").value;
+  const newPrice =
+    parseFloat(document.getElementById("editItemPrice").value) || 0;
+
+  if (!newName) return alert("Inserisci il nome del prodotto");
+  if (isNaN(newQty) || newQty <= 0) return alert("Quantità non valida");
+
+  const oldName = state.shoppingList[editingShoppingIndex].name;
+
+  // Aggiorna il prodotto nella lista
+  state.shoppingList[editingShoppingIndex] = {
+    ...state.shoppingList[editingShoppingIndex],
+    name: newName,
+    quantity: newQty,
+    unit: newUnit,
+  };
+
+  // Se il nome è cambiato, aggiorna i riferimenti
+  if (oldName !== newName) {
+    state.takenProducts.forEach((p) => {
+      if (p.name === oldName) p.name = newName;
+    });
+
+    // Se esiste già un prodotto con il nuovo nome nel database, usa quello
+    let dbProd = state.products.find((p) => p.name === newName);
+    if (!dbProd) {
+      // Altrimenti cerca il vecchio prodotto e rinominalo
+      const oldDbProd = state.products.find((p) => p.name === oldName);
+      if (oldDbProd) {
+        oldDbProd.name = newName;
+        dbProd = oldDbProd;
+      } else {
+        // Crea un nuovo prodotto nel database
+        dbProd = { name: newName, category: "Altri Prodotti", prices: {} };
+        state.products.push(dbProd);
+      }
+    }
+
+    // Aggiorna il prezzo nel database per il supermercato corrente
+    if (state.currentSupermarket) {
+      dbProd.prices[state.currentSupermarket] = newPrice;
+    }
+  } else {
+    // Nome invariato: aggiorna solo il prezzo nel database
+    let dbProd = state.products.find((p) => p.name === newName);
+    if (!dbProd) {
+      dbProd = { name: newName, category: "Altri Prodotti", prices: {} };
+      state.products.push(dbProd);
+    }
+    if (state.currentSupermarket) {
+      dbProd.prices[state.currentSupermarket] = newPrice;
+    }
+  }
+
   saveState();
-  renderShoppingList();
-  updateTotals();
+  renderAll();
+  closeModal("editShoppingItemModal");
 }
 
 function deleteShoppingItem(i) {
