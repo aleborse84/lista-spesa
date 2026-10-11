@@ -26,7 +26,7 @@ body {
     color: var(--text);
     line-height: 1.5;
     -webkit-tap-highlight-color: transparent;
-    overflow-x: hidden; /* impedisce scroll orizzontale su tutta la pagina */
+    overflow-x: hidden;
 }
 
 .container {
@@ -36,6 +36,7 @@ body {
     padding-bottom: 40px;
 }
 
+/* ============ HEADER ============ */
 .header {
     background: var(--card);
     padding: 16px;
@@ -54,7 +55,7 @@ body {
     align-items: center;
     gap: 10px;
     width: 100%;
-    min-width: 0; /* fondamentale per evitare overflow */
+    min-width: 0;
 }
 .supermarket-selector label {
     font-weight: 600;
@@ -64,7 +65,7 @@ body {
 }
 .supermarket-selector select {
     flex: 1;
-    min-width: 0; /* permette al select di rimpicciolirsi */
+    min-width: 0;
     padding: 10px;
     border: 2px solid var(--border);
     border-radius: 8px;
@@ -83,7 +84,7 @@ body {
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    flex-shrink: 0; /* non si rimpicciolisce */
+    flex-shrink: 0;
     box-shadow: var(--shadow);
 }
 .supermarket-logo-box img {
@@ -96,6 +97,7 @@ body {
     opacity: 0.3;
 }
 
+/* ============ TOTAL DISPLAY ============ */
 .total-display {
     background: linear-gradient(135deg, var(--primary), var(--primary-hover));
     color: white;
@@ -167,6 +169,7 @@ body {
     font-weight: 800;
 }
 
+/* ============ TABS ============ */
 .tabs {
     background: var(--card);
     padding: 6px;
@@ -205,7 +208,7 @@ body {
     display: block;
 }
 
-/* Quick add box nella lista */
+/* ============ QUICK ADD (LISTA) ============ */
 .add-to-list-box {
     background: var(--card);
     padding: 14px;
@@ -296,6 +299,7 @@ body {
     width: 70px;
 }
 
+/* ============ ACTION BUTTONS ============ */
 .action-buttons {
     display: flex;
     gap: 8px;
@@ -349,6 +353,7 @@ body {
     margin-bottom: 16px;
 }
 
+/* ============ PRODUCT LIST ============ */
 .product-list {
     list-style: none;
     background: var(--card);
@@ -423,32 +428,49 @@ body {
     color: var(--danger);
 }
 
-/* Database */
+/* ============ DATABASE ============ */
 .db-header {
     display: flex;
     gap: 8px;
+    align-items: stretch;
     margin-bottom: 12px;
 }
-.db-search {
+.db-header .db-search {
     flex: 1;
+    min-width: 0;
     padding: 10px 12px;
     border: 2px solid var(--border);
     border-radius: 8px;
     font-size: 14px;
     background: var(--card);
 }
+.db-header .btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
 .db-categories-filter {
     display: flex;
+    flex-wrap: nowrap;
     gap: 6px;
     overflow-x: auto;
     margin-bottom: 12px;
-    padding-bottom: 4px;
-    scrollbar-width: none;
+    padding-bottom: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
 }
 .db-categories-filter::-webkit-scrollbar {
-    display: none;
+    height: 6px;
+}
+.db-categories-filter::-webkit-scrollbar-track {
+    background: transparent;
+}
+.db-categories-filter::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
 }
 .db-cat-btn {
+    flex-shrink: 0;
     padding: 6px 12px;
     border: none;
     background: var(--card);
@@ -509,6 +531,7 @@ body {
     color: var(--primary);
 }
 
+/* ============ PRICES CONTAINER ============ */
 .prices-container {
     background: var(--bg);
     padding: 12px;
@@ -538,6 +561,7 @@ body {
     display: flex;
     align-items: center;
     gap: 6px;
+    min-width: 0;
 }
 .price-row input {
     width: 90px;
@@ -545,6 +569,7 @@ body {
     border: 2px solid var(--border);
     border-radius: 6px;
     font-size: 14px;
+    flex-shrink: 0;
 }
 .no-sm-warning {
     font-size: 12px;
@@ -553,6 +578,7 @@ body {
     padding: 8px;
 }
 
+/* ============ SETTINGS ============ */
 .settings-section {
     background: var(--card);
     padding: 16px;
@@ -570,12 +596,18 @@ body {
     display: flex;
     gap: 8px;
     margin-bottom: 12px;
+    align-items: stretch;
 }
 .supermarket-form input {
     flex: 1;
+    min-width: 0;
     padding: 10px;
     border: 2px solid var(--border);
     border-radius: 8px;
+}
+.supermarket-form .btn {
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 .supermarkets-list {
     list-style: none;
@@ -611,10 +643,15 @@ body {
     flex: 1;
     font-size: 14px;
     font-weight: 600;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .sm-actions {
     display: flex;
     gap: 4px;
+    flex-shrink: 0;
 }
 .backup-buttons {
     display: flex;
@@ -626,6 +663,7 @@ body {
     color: var(--text-light);
 }
 
+/* ============ ARCHIVE ============ */
 .archive-filters {
     background: var(--card);
     padding: 16px;
@@ -749,6 +787,7 @@ body {
     font-size: 13px;
 }
 
+/* ============ MODAL ============ */
 .modal {
     display: none;
     position: fixed;
@@ -867,27 +906,97 @@ body {
     margin-bottom: 8px;
 }
 
-@media (max-width: 480px) {
+/* ============ CATEGORIES BAR (compatibilità) ============ */
+.categories-bar {
+    background: var(--card);
+    padding: 12px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.categories-bar::-webkit-scrollbar {
+    display: none;
+}
+.category-btn {
+    padding: 8px 14px;
+    border: none;
+    background: var(--bg);
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    color: var(--text);
+    flex-shrink: 0;
+}
+.category-btn:active {
+    background: var(--primary);
+    color: white;
+}
+
+/* ============ FAB BUTTON ============ */
+.fab-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 56px;
+    height: 56px;
+    border: none;
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
+    font-size: 28px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+    z-index: 90;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ============ IMMAGINI ============ */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* ============ MOBILE RESPONSIVE ============ */
+@media (max-width: 640px) {
     .container {
         padding: 12px;
         padding-bottom: 40px;
-        overflow-x: hidden; /* evita scroll orizzontale */
+        overflow-x: hidden;
+        max-width: 100%;
     }
 
+    /* Header */
+    .header {
+        padding: 14px;
+    }
+    .header h1 {
+        font-size: 20px;
+        margin-bottom: 10px;
+    }
     .supermarket-selector {
         gap: 8px;
     }
-
     .supermarket-selector label {
         font-size: 13px;
     }
-
+    .supermarket-selector select {
+        font-size: 14px;
+        padding: 8px;
+    }
     .supermarket-logo-box {
         width: 36px;
         height: 36px;
     }
 
-    /* FAB button più piccolo su mobile */
+    /* FAB button */
     .fab-btn {
         width: 50px;
         height: 50px;
@@ -896,20 +1005,163 @@ body {
         font-size: 24px;
     }
 
+    /* Tabs */
+    .tabs {
+        padding: 4px;
+        gap: 2px;
+    }
     .tab-btn {
         font-size: 11px;
         padding: 8px 2px;
     }
+
+    /* Total display */
+    .total-display {
+        padding: 16px;
+    }
+    .total-amount {
+        font-size: 28px;
+    }
+    .people-selector {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    /* Action buttons - impila verticalmente */
     .action-buttons {
         flex-direction: column;
+        gap: 6px;
     }
-    .btn:not(.btn-small) {
+    .action-buttons .btn {
+        width: 100%;
         min-width: 100%;
+        flex: none;
     }
-    .archive-stats {
-        flex-direction: column;
-    }
+
+    /* Quick add row */
     .quick-add-row {
         flex-wrap: wrap;
+    }
+    .qty-input,
+    .unit-input {
+        flex: 1;
+        min-width: 60px;
+    }
+
+    /* Database header - bottone sotto l'input */
+    .db-header {
+        flex-direction: column;
+    }
+    .db-header .btn {
+        width: 100%;
+        min-width: 100%;
+        flex: none;
+    }
+
+    /* Form supermercato - bottone sotto l'input */
+    .supermarket-form {
+        flex-direction: column;
+    }
+    .supermarket-form input,
+    .supermarket-form .btn {
+        width: 100%;
+        min-width: 100%;
+        flex: none;
+    }
+
+    /* Backup buttons */
+    .backup-buttons {
+        flex-direction: column;
+        gap: 8px;
+    }
+    .backup-buttons .btn {
+        width: 100%;
+        min-width: 100%;
+        flex: none;
+    }
+
+    /* Settings section */
+    .settings-section {
+        padding: 14px;
+    }
+    .settings-section h3 {
+        font-size: 15px;
+        margin-bottom: 10px;
+    }
+
+    /* Archive stats */
+    .archive-stats {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    /* Archive filters */
+    .archive-filters {
+        padding: 14px;
+    }
+    .filter-group {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+    }
+    .filter-group label {
+        min-width: auto;
+    }
+    .archive-item {
+        padding: 12px;
+    }
+    .archive-actions {
+        flex-direction: column;
+        gap: 6px;
+    }
+    .archive-actions .btn {
+        width: 100%;
+        min-width: 100%;
+        flex: none;
+    }
+
+    /* Modal */
+    .modal-content {
+        max-width: 100%;
+        margin: 8px;
+    }
+    .modal-body {
+        padding: 14px;
+    }
+    .modal-footer {
+        flex-direction: column;
+        gap: 8px;
+        padding: 14px;
+    }
+    .modal-footer .btn {
+        width: 100%;
+        min-width: 100%;
+        flex: none;
+    }
+
+    /* Product list */
+    .product-item {
+        padding: 12px;
+    }
+    .product-name {
+        font-size: 14px;
+    }
+    .product-details {
+        font-size: 12px;
+    }
+    .icon-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+
+    /* Categories bar */
+    .categories-bar {
+        padding: 10px;
+        gap: 6px;
+    }
+    .category-btn {
+        padding: 6px 10px;
+        font-size: 12px;
     }
 }
