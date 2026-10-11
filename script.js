@@ -41,11 +41,24 @@ const CATEGORIES = [
 ];
 
 function loadState() {
-  const saved = localStorage.getItem("shoppingAppState");
-  if (saved) {
-    state = JSON.parse(saved);
-    migrateState();
-  }
+  // Ascolta i cambiamenti in tempo reale dal database
+  appDataRef.on(
+    "value",
+    (snapshot) => {
+      const saved = snapshot.val();
+      if (saved) {
+        state = saved;
+        migrateState(); // Mantiene la tua logica di migrazione esistente
+        renderAll();
+      } else {
+        // Se il database è vuoto (prima volta assoluta), salva lo stato iniziale
+        saveState();
+      }
+    },
+    (error) => {
+      console.error("Errore nel caricamento da Firebase:", error);
+    },
+  );
 }
 
 function migrateState() {
@@ -77,7 +90,16 @@ function migrateState() {
 }
 
 function saveState() {
-  localStorage.setItem("shoppingAppState", JSON.stringify(state));
+  // Salva lo stato su Firebase invece che nel localStorage
+  appDataRef
+    .set(state)
+    .then(() => {
+      console.log("Dati sincronizzati con successo");
+    })
+    .catch((error) => {
+      console.error("Errore nel salvataggio su Firebase:", error);
+      alert("Errore di connessione. Controlla internet.");
+    });
 }
 
 document.addEventListener("DOMContentLoaded", () => {

@@ -442,6 +442,31 @@
             </div>
         </div>
 
+        <!-- Firebase SDK (Versione Compat per facilità di integrazione) -->
+        <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+        <script>
+            // INCOLLA QUI LA TUA CONFIGURAZIONE WEB (quella copiata al Passo 1)
+            const firebaseConfig = {
+                apiKey: "AIzaSy...", // Sostituisci con la tua API Key
+                authDomain: "lista-della-spesa-1696b.firebaseapp.com",
+                databaseURL: "https://lista-della-spesa-1696b-default-rtdb.europe-west1.firebasedatabase.app",
+                projectId: "lista-della-spesa-1696b",
+                storageBucket: "lista-della-spesa-1696b.appspot.com",
+                messagingSenderId: "123456789", // Sostituisci con il tuo
+                appId: "1:123456789:web:abcdef" // Sostituisci con il tuo
+            };
+
+            // Inizializza Firebase
+            firebase.initializeApp(firebaseConfig);
+            const db = firebase.database();
+            const appDataRef = db.ref('shoppingAppState');
+        </script>
+
+        <!-- Il tuo file JS principale -->
         <script src="script.js"></script>
+    </body>
+    </html>
     </body>
 </html>
