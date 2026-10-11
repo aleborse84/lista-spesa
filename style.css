@@ -74,7 +74,6 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
 }
-
 .supermarket-logo-box {
     width: 40px;
     height: 40px;
@@ -148,7 +147,6 @@ body {
     font-size: 15px;
     font-weight: 600;
 }
-
 .taken-total-box {
     background: var(--success);
     color: white;
@@ -195,12 +193,12 @@ body {
     cursor: pointer;
     color: var(--text-light);
     white-space: nowrap;
+    min-width: 0;
 }
 .tab-btn.active {
     background: var(--primary);
     color: white;
 }
-
 .tab-content {
     display: none;
 }
@@ -208,7 +206,7 @@ body {
     display: block;
 }
 
-/* ============ QUICK ADD (LISTA) ============ */
+/* ============ QUICK ADD ============ */
 .add-to-list-box {
     background: var(--card);
     padding: 14px;
@@ -279,7 +277,6 @@ body {
     color: var(--primary);
     font-weight: 700;
 }
-
 .quick-add-row {
     display: flex;
     gap: 8px;
@@ -299,7 +296,7 @@ body {
     width: 70px;
 }
 
-/* ============ ACTION BUTTONS ============ */
+/* ============ BUTTONS ============ */
 .action-buttons {
     display: flex;
     gap: 8px;
@@ -316,6 +313,7 @@ body {
     flex: 1;
     min-width: 80px;
     text-align: center;
+    transition: all 0.2s;
 }
 .btn-small {
     padding: 8px 12px;
@@ -343,7 +341,6 @@ body {
     background: var(--primary);
     color: white;
 }
-
 .empty-state {
     background: var(--card);
     padding: 30px 20px;
@@ -386,6 +383,7 @@ body {
     font-weight: 600;
     font-size: 15px;
     margin-bottom: 2px;
+    word-break: break-word;
 }
 .product-details {
     display: flex;
@@ -423,6 +421,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 .icon-btn.delete {
     color: var(--danger);
@@ -435,7 +434,7 @@ body {
     align-items: stretch;
     margin-bottom: 12px;
 }
-.db-header .db-search {
+.db-search {
     flex: 1;
     min-width: 0;
     padding: 10px 12px;
@@ -444,23 +443,19 @@ body {
     font-size: 14px;
     background: var(--card);
 }
-.db-header .btn {
-    flex-shrink: 0;
-    white-space: nowrap;
-}
-
 .db-categories-filter {
     display: flex;
     flex-wrap: nowrap;
     gap: 6px;
     overflow-x: auto;
     margin-bottom: 12px;
-    padding-bottom: 6px;
+    padding-bottom: 8px;
     scrollbar-width: thin;
     scrollbar-color: var(--border) transparent;
 }
 .db-categories-filter::-webkit-scrollbar {
     height: 6px;
+    display: block;
 }
 .db-categories-filter::-webkit-scrollbar-track {
     background: transparent;
@@ -486,7 +481,6 @@ body {
     background: var(--primary);
     color: white;
 }
-
 .db-stats {
     background: var(--card);
     padding: 10px 14px;
@@ -497,7 +491,6 @@ body {
     display: flex;
     justify-content: space-between;
 }
-
 .db-list .product-item {
     cursor: pointer;
 }
@@ -562,6 +555,9 @@ body {
     align-items: center;
     gap: 6px;
     min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .price-row input {
     width: 90px;
@@ -604,10 +600,6 @@ body {
     padding: 10px;
     border: 2px solid var(--border);
     border-radius: 8px;
-}
-.supermarket-form .btn {
-    flex-shrink: 0;
-    white-space: nowrap;
 }
 .supermarkets-list {
     list-style: none;
@@ -712,7 +704,6 @@ body {
     font-size: 18px;
     font-weight: 700;
 }
-
 .archive-list {
     list-style: none;
     background: var(--card);
@@ -766,7 +757,6 @@ body {
     display: flex;
     gap: 8px;
 }
-
 .archive-products-edit {
     max-height: 300px;
     overflow-y: auto;
@@ -833,6 +823,7 @@ body {
     border-radius: 8px;
     font-size: 20px;
     cursor: pointer;
+    flex-shrink: 0;
 }
 .modal-body {
     padding: 16px;
@@ -843,7 +834,6 @@ body {
     padding: 16px;
     border-top: 1px solid var(--border);
 }
-
 .form-group {
     margin-bottom: 14px;
 }
@@ -862,7 +852,6 @@ body {
     border-radius: 8px;
     font-size: 15px;
 }
-
 .logo-preview {
     width: 80px;
     height: 80px;
@@ -885,7 +874,6 @@ body {
     font-size: 32px;
     opacity: 0.3;
 }
-
 .logo-input-method {
     display: flex;
     gap: 8px;
@@ -906,7 +894,7 @@ body {
     margin-bottom: 8px;
 }
 
-/* ============ CATEGORIES BAR (compatibilità) ============ */
+/* ============ CATEGORIES BAR ============ */
 .categories-bar {
     background: var(--card);
     padding: 12px;
@@ -969,8 +957,6 @@ img {
     .container {
         padding: 12px;
         padding-bottom: 40px;
-        overflow-x: hidden;
-        max-width: 100%;
     }
 
     /* Header */
@@ -1120,10 +1106,14 @@ img {
         flex: none;
     }
 
-    /* Modal */
+    /* Modal - footer in colonna */
+    .modal {
+        padding: 8px;
+    }
     .modal-content {
         max-width: 100%;
-        margin: 8px;
+        margin: 0;
+        max-height: 95vh;
     }
     .modal-body {
         padding: 14px;
@@ -1163,5 +1153,17 @@ img {
     .category-btn {
         padding: 6px 10px;
         font-size: 12px;
+    }
+
+    /* Price rows in modal */
+    .price-row {
+        flex-wrap: wrap;
+    }
+    .price-row label {
+        flex: 1 1 100%;
+        margin-bottom: 4px;
+    }
+    .price-row input {
+        width: 100%;
     }
 }
