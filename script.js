@@ -79,6 +79,7 @@ function ensureStateIntegrity() {
 }
 
 function loadState() {
+  // Carica da localStorage come fallback
   const saved = localStorage.getItem("shoppingAppState");
   if (saved) {
     try {
@@ -88,22 +89,32 @@ function loadState() {
       state = {};
     }
   }
+
+  // Garantisce che lo state sia valido
   ensureStateIntegrity();
 
-  // Ascolta i cambiamenti in tempo reale dal database Firebase (se configurato)
+  // Ascolta Firebase SOLO se configurato
   if (typeof appDataRef !== "undefined") {
     appDataRef.on(
       "value",
       (snapshot) => {
         const savedDb = snapshot.val();
-        if (savedDb) {
+
+        // IMPORTANTE: Valida i dati di Firebase prima di usarli
+        if (savedDb && typeof savedDb === "object") {
           state = savedDb;
-          ensureStateIntegrity();
+          ensureStateIntegrity(); // Garantisce che sia valido
+
+          // Salva anche in localStorage come backup
+          localStorage.setItem("shoppingAppState", JSON.stringify(state));
+
           renderAll();
         }
+        // Se Firebase è vuoto o corrotto, non fare nulla (usa localStorage)
       },
       (error) => {
         console.error("Errore Firebase:", error);
+        // Continua a usare localStorage se Firebase fallisce
       },
     );
   } else {
