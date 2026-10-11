@@ -26,6 +26,7 @@ body {
     color: var(--text);
     line-height: 1.5;
     -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden; /* impedisce scroll orizzontale su tutta la pagina */
 }
 
 .container {
@@ -51,31 +52,39 @@ body {
 .supermarket-selector {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
+    width: 100%;
+    min-width: 0; /* fondamentale per evitare overflow */
 }
 .supermarket-selector label {
     font-weight: 600;
     font-size: 14px;
     color: var(--text-light);
+    flex-shrink: 0;
 }
 .supermarket-selector select {
     flex: 1;
+    min-width: 0; /* permette al select di rimpicciolirsi */
     padding: 10px;
     border: 2px solid var(--border);
     border-radius: 8px;
     font-size: 15px;
     background: var(--card);
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .supermarket-logo-box {
-    width: 39px;
-    height: 39px;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
     background: var(--bg);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    flex-shrink: 0;
+    flex-shrink: 0; /* non si rimpicciolisce */
+    box-shadow: var(--shadow);
 }
 .supermarket-logo-box img {
     width: 100%;
@@ -83,7 +92,7 @@ body {
     object-fit: cover;
 }
 .supermarket-logo-placeholder {
-    font-size: 24px;
+    font-size: 20px;
     opacity: 0.3;
 }
 
@@ -859,6 +868,34 @@ body {
 }
 
 @media (max-width: 480px) {
+    .container {
+        padding: 12px;
+        padding-bottom: 40px;
+        overflow-x: hidden; /* evita scroll orizzontale */
+    }
+
+    .supermarket-selector {
+        gap: 8px;
+    }
+
+    .supermarket-selector label {
+        font-size: 13px;
+    }
+
+    .supermarket-logo-box {
+        width: 36px;
+        height: 36px;
+    }
+
+    /* FAB button più piccolo su mobile */
+    .fab-btn {
+        width: 50px;
+        height: 50px;
+        right: 16px;
+        bottom: 16px;
+        font-size: 24px;
+    }
+
     .tab-btn {
         font-size: 11px;
         padding: 8px 2px;
