@@ -206,6 +206,52 @@ body {
     display: block;
 }
 
+/* ============ CATEGORIES BAR (pulsanti rapidi) ============ */
+.categories-bar {
+    background: var(--card);
+    padding: 12px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+    -webkit-overflow-scrolling: touch;
+}
+.categories-bar::-webkit-scrollbar {
+    height: 6px;
+    display: block;
+}
+.categories-bar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.categories-bar::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+}
+.category-btn {
+    flex-shrink: 0;
+    flex-grow: 0;
+    padding: 8px 14px;
+    border: none;
+    background: var(--bg);
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    color: var(--text);
+    min-width: fit-content;
+}
+.category-btn:active {
+    background: var(--primary);
+    color: white;
+}
+
 /* ============ QUICK ADD ============ */
 .add-to-list-box {
     background: var(--card);
@@ -655,6 +701,61 @@ body {
     color: var(--text-light);
 }
 
+/* ============ CATEGORIE SETTINGS ============ */
+.category-form {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    align-items: stretch;
+}
+.category-form .emoji-input {
+    width: 60px;
+    flex-shrink: 0;
+    text-align: center;
+    font-size: 18px;
+    padding: 10px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+}
+.category-form input[type="text"] {
+    flex: 1;
+    min-width: 0;
+    padding: 10px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+}
+.category-form .btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+.categories-list {
+    list-style: none;
+}
+.category-setting-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: var(--bg);
+    border-radius: 8px;
+    margin-bottom: 6px;
+}
+.category-emoji {
+    font-size: 20px;
+    flex-shrink: 0;
+    width: 30px;
+    text-align: center;
+}
+.category-name {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 /* ============ ARCHIVE ============ */
 .archive-filters {
     background: var(--card);
@@ -837,6 +938,13 @@ body {
 .form-group {
     margin-bottom: 14px;
 }
+.form-row {
+    display: flex;
+    gap: 12px;
+}
+.form-row .form-group {
+    flex: 1;
+}
 .form-group label {
     display: block;
     font-weight: 600;
@@ -894,38 +1002,6 @@ body {
     margin-bottom: 8px;
 }
 
-/* ============ CATEGORIES BAR ============ */
-.categories-bar {
-    background: var(--card);
-    padding: 12px;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    margin-bottom: 16px;
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    scrollbar-width: none;
-}
-.categories-bar::-webkit-scrollbar {
-    display: none;
-}
-.category-btn {
-    padding: 8px 14px;
-    border: none;
-    background: var(--bg);
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    white-space: nowrap;
-    color: var(--text);
-    flex-shrink: 0;
-}
-.category-btn:active {
-    background: var(--primary);
-    color: white;
-}
-
 /* ============ FAB BUTTON ============ */
 .fab-btn {
     position: fixed;
@@ -952,14 +1028,34 @@ img {
     height: auto;
 }
 
+/* ============ FIX CESTINO ============ */
+.supermarket-item .icon-btn.delete {
+    color: var(--danger);
+    font-size: 18px;
+    opacity: 0.8;
+}
+.supermarket-item .icon-btn.delete:hover {
+    opacity: 1;
+    background: var(--danger);
+    color: white;
+}
+.category-setting-item .icon-btn.delete {
+    color: var(--danger);
+    font-size: 18px;
+    opacity: 0.8;
+}
+.category-setting-item .icon-btn.delete:hover {
+    opacity: 1;
+    background: var(--danger);
+    color: white;
+}
+
 /* ============ MOBILE RESPONSIVE ============ */
 @media (max-width: 640px) {
     .container {
         padding: 12px;
         padding-bottom: 40px;
     }
-
-    /* Header */
     .header {
         padding: 14px;
     }
@@ -981,8 +1077,6 @@ img {
         width: 36px;
         height: 36px;
     }
-
-    /* FAB button */
     .fab-btn {
         width: 50px;
         height: 50px;
@@ -990,8 +1084,6 @@ img {
         bottom: 16px;
         font-size: 24px;
     }
-
-    /* Tabs */
     .tabs {
         padding: 4px;
         gap: 2px;
@@ -1000,8 +1092,6 @@ img {
         font-size: 11px;
         padding: 8px 2px;
     }
-
-    /* Total display */
     .total-display {
         padding: 16px;
     }
@@ -1012,8 +1102,6 @@ img {
         flex-wrap: wrap;
         gap: 8px;
     }
-
-    /* Action buttons - impila verticalmente */
     .action-buttons {
         flex-direction: column;
         gap: 6px;
@@ -1023,8 +1111,6 @@ img {
         min-width: 100%;
         flex: none;
     }
-
-    /* Quick add row */
     .quick-add-row {
         flex-wrap: wrap;
     }
@@ -1033,8 +1119,6 @@ img {
         flex: 1;
         min-width: 60px;
     }
-
-    /* Database header - bottone sotto l'input */
     .db-header {
         flex-direction: column;
     }
@@ -1043,8 +1127,6 @@ img {
         min-width: 100%;
         flex: none;
     }
-
-    /* Form supermercato - bottone sotto l'input */
     .supermarket-form {
         flex-direction: column;
     }
@@ -1054,8 +1136,6 @@ img {
         min-width: 100%;
         flex: none;
     }
-
-    /* Backup buttons */
     .backup-buttons {
         flex-direction: column;
         gap: 8px;
@@ -1065,8 +1145,16 @@ img {
         min-width: 100%;
         flex: none;
     }
-
-    /* Settings section */
+    .category-form {
+        flex-direction: column;
+    }
+    .category-form .emoji-input,
+    .category-form input[type="text"],
+    .category-form .btn {
+        width: 100%;
+        min-width: 100%;
+        flex: none;
+    }
     .settings-section {
         padding: 14px;
     }
@@ -1074,14 +1162,10 @@ img {
         font-size: 15px;
         margin-bottom: 10px;
     }
-
-    /* Archive stats */
     .archive-stats {
         flex-direction: column;
         gap: 8px;
     }
-
-    /* Archive filters */
     .archive-filters {
         padding: 14px;
     }
@@ -1105,8 +1189,6 @@ img {
         min-width: 100%;
         flex: none;
     }
-
-    /* Modal - footer in colonna */
     .modal {
         padding: 8px;
     }
@@ -1128,8 +1210,6 @@ img {
         min-width: 100%;
         flex: none;
     }
-
-    /* Product list */
     .product-item {
         padding: 12px;
     }
@@ -1144,18 +1224,18 @@ img {
         height: 32px;
         font-size: 14px;
     }
-
-    /* Categories bar */
     .categories-bar {
         padding: 10px;
         gap: 6px;
+        scrollbar-width: none;
+    }
+    .categories-bar::-webkit-scrollbar {
+        display: none;
     }
     .category-btn {
         padding: 6px 10px;
         font-size: 12px;
     }
-
-    /* Price rows in modal */
     .price-row {
         flex-wrap: wrap;
     }
@@ -1166,12 +1246,12 @@ img {
     .price-row input {
         width: 100%;
     }
-
-    .form-row {
-        display: flex;
-        gap: 12px;
-    }
-    .form-row .form-group {
-        flex: 1;
+    #archiveDate {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        font-size: 15px;
+        background: var(--card);
     }
 }

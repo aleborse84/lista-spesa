@@ -49,19 +49,20 @@
                     🛍️ Lista
                 </button>
                 <button class="tab-btn" data-tab="taken">📦 Presi</button>
-                <button class="tab-btn" data-tab="database">🗂️ Database</button>
+                <button class="tab-btn" data-tab="database">️ Database</button>
                 <button class="tab-btn" data-tab="archive">📚 Archivio</button>
                 <button class="tab-btn" data-tab="settings">⚙️</button>
             </div>
 
             <!-- TAB LISTA SPESA -->
             <div class="tab-content active" id="shoppingTab">
+                <div class="categories-bar" id="categoriesBar"></div>
                 <div class="add-to-list-box">
                     <div class="autocomplete-wrapper">
                         <input
                             type="text"
                             id="quickAddInput"
-                            placeholder="🔍 Cerca prodotto nel database..."
+                            placeholder=" Cerca prodotto nel database..."
                             autocomplete="off"
                         />
                         <div
@@ -212,6 +213,27 @@
             <!-- TAB IMPOSTAZIONI -->
             <div class="tab-content" id="settingsTab">
                 <div class="settings-section">
+                    <h3>🏷️ Categorie</h3>
+                    <div class="category-form">
+                        <input
+                            type="text"
+                            id="newCategoryEmoji"
+                            placeholder="📦"
+                            maxlength="4"
+                            class="emoji-input"
+                        />
+                        <input
+                            type="text"
+                            id="newCategoryName"
+                            placeholder="Nome categoria"
+                        />
+                        <button id="addCategoryBtn" class="btn btn-primary">
+                            + Aggiungi
+                        </button>
+                    </div>
+                    <ul id="categoriesList" class="categories-list"></ul>
+                </div>
+                <div class="settings-section">
                     <h3>🏪 Supermercati</h3>
                     <div class="supermarket-form">
                         <input
@@ -297,6 +319,10 @@
                     </button>
                 </div>
                 <div class="modal-body">
+                    <div class="form-group">
+                        <label for="archiveDate">Data spesa:</label>
+                        <input type="date" id="archiveDate" />
+                    </div>
                     <div class="form-group">
                         <label for="archiveSupermarket">Supermercato:</label>
                         <select id="archiveSupermarket"></select>
@@ -447,17 +473,27 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h2>Modifica Prodotto</h2>
-                    <button class="close-btn" data-close="editShoppingItemModal">&times;</button>
+                    <button
+                        class="close-btn"
+                        data-close="editShoppingItemModal"
+                    >
+                        &times;
+                    </button>
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="editItemName">Nome prodotto:</label>
-                        <input type="text" id="editItemName">
+                        <input type="text" id="editItemName" />
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="editItemQty">Quantità:</label>
-                            <input type="number" id="editItemQty" min="0.1" step="0.1">
+                            <input
+                                type="number"
+                                id="editItemQty"
+                                min="0.1"
+                                step="0.1"
+                            />
                         </div>
                         <div class="form-group">
                             <label for="editItemUnit">Unità:</label>
@@ -471,42 +507,86 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="editItemPrice">Prezzo per <span id="editItemSmName">supermercato</span> (€):</label>
-                        <input type="number" id="editItemPrice" min="0" step="0.01">
+                        <label for="editItemPrice"
+                            >Prezzo per
+                            <span id="editItemSmName">supermercato</span>
+                            (€):</label
+                        >
+                        <input
+                            type="number"
+                            id="editItemPrice"
+                            min="0"
+                            step="0.01"
+                        />
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" data-close="editShoppingItemModal">Annulla</button>
-                    <button id="saveShoppingItemBtn" class="btn btn-primary">Salva</button>
+                    <button
+                        class="btn btn-secondary"
+                        data-close="editShoppingItemModal"
+                    >
+                        Annulla
+                    </button>
+                    <button id="saveShoppingItemBtn" class="btn btn-primary">
+                        Salva
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- Firebase SDK (Versione Compat per facilità di integrazione) -->
+        <!-- Modal Modifica Categoria -->
+        <div id="editCategoryModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Modifica Categoria</h2>
+                    <button class="close-btn" data-close="editCategoryModal">
+                        &times;
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="editCatEmoji">Emoji:</label>
+                        <input type="text" id="editCatEmoji" maxlength="4" />
+                    </div>
+                    <div class="form-group">
+                        <label for="editCatName">Nome:</label>
+                        <input type="text" id="editCatName" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button
+                        class="btn btn-secondary"
+                        data-close="editCategoryModal"
+                    >
+                        Annulla
+                    </button>
+                    <button id="saveEditCategoryBtn" class="btn btn-primary">
+                        Salva
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Firebase SDK -->
         <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
         <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
         <script>
-            // INCOLLA QUI LA TUA CONFIGURAZIONE WEB (quella copiata al Passo 1)
             const firebaseConfig = {
-                        apiKey: "AIzaSyC5aot7NVkNW9YlSGRm9o1onQ7tyDN4b80",
-                        authDomain: "lista-della-spesa-1696b.firebaseapp.com",
-                        databaseURL: "https://lista-della-spesa-1696b-default-rtdb.europe-west1.firebasedatabase.app",
-                        projectId: "lista-della-spesa-1696b",
-                        storageBucket: "lista-della-spesa-1696b.firebasestorage.app",
-                        messagingSenderId: "801259224997",
-                        appId: "1:801259224997:web:bcf78aafe0daf07688724c"
+                apiKey: "AIzaSyC5aot7NVkNW9YlSGRm9o1onQ7tyDN4b80",
+                authDomain: "lista-della-spesa-1696b.firebaseapp.com",
+                databaseURL:
+                    "https://lista-della-spesa-1696b-default-rtdb.europe-west1.firebasedatabase.app",
+                projectId: "lista-della-spesa-1696b",
+                storageBucket: "lista-della-spesa-1696b.firebasestorage.app",
+                messagingSenderId: "801259224997",
+                appId: "1:801259224997:web:bcf78aafe0daf07688724c",
             };
-
-            // Inizializza Firebase
             firebase.initializeApp(firebaseConfig);
             const db = firebase.database();
-            const appDataRef = db.ref('shoppingAppState');
+            const appDataRef = db.ref("shoppingAppState");
         </script>
 
-        <!-- Il tuo file JS principale -->
         <script src="script.js"></script>
-    </body>
-    </html>
     </body>
 </html>
