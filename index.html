@@ -12,7 +12,7 @@
     <body>
         <div class="container">
             <header class="header">
-                <h1>🛒 Lista della Spesa</h1>
+                <h1>Lista della Spesa</h1>
                 <div class="supermarket-selector">
                     <label for="currentSupermarket">Supermercato:</label>
                     <select id="currentSupermarket">
@@ -49,9 +49,11 @@
                     🛍️ Lista
                 </button>
                 <button class="tab-btn" data-tab="taken">📦 Presi</button>
-                <button class="tab-btn" data-tab="database">️ Database</button>
+                <button class="tab-btn" data-tab="database">🗂️ Database</button>
                 <button class="tab-btn" data-tab="archive">📚 Archivio</button>
-                <button class="tab-btn" data-tab="settings">⚙️</button>
+                <button class="tab-btn" data-tab="settings">
+                    ⚙️ Impostazioni
+                </button>
             </div>
 
             <!-- TAB LISTA SPESA -->
@@ -62,7 +64,7 @@
                         <input
                             type="text"
                             id="quickAddInput"
-                            placeholder=" Cerca prodotto nel database..."
+                            placeholder="🔍 Cerca prodotto nel database..."
                             autocomplete="off"
                         />
                         <div
@@ -124,10 +126,10 @@
                         ↩️ Ripristina
                     </button>
                     <button id="clearTakenBtn" class="btn btn-danger">
-                        🗑 Svuota
+                        Svuota
                     </button>
                     <button id="saveShoppingBtn" class="btn btn-success">
-                        💾 Salva Spesa
+                        Salva Spesa
                     </button>
                 </div>
                 <div
@@ -146,7 +148,7 @@
                     <input
                         type="text"
                         id="dbSearch"
-                        placeholder="🔍 Cerca prodotto..."
+                        placeholder=" Cerca prodotto..."
                         class="db-search"
                     />
                     <button id="addDbProductBtn" class="btn btn-primary">
@@ -213,7 +215,7 @@
             <!-- TAB IMPOSTAZIONI -->
             <div class="tab-content" id="settingsTab">
                 <div class="settings-section">
-                    <h3>🏷️ Categorie</h3>
+                    <h3>️ Categorie</h3>
                     <div class="category-form">
                         <input
                             type="text"

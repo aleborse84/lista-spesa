@@ -131,7 +131,7 @@ function renderCategoriesSettings() {
             <span class="category-name">${cat.name}</span>
             <div class="sm-actions">
                 <button class="icon-btn" onclick="editCategory(${realIdx})" title="Modifica">✏️</button>
-                <button class="icon-btn delete" onclick="deleteCategory(${realIdx})" title="Elimina"></button>
+                <button class="icon-btn delete" onclick="deleteCategory(${realIdx})" title="Elimina">🗑</button>
             </div>
         `;
     list.appendChild(li);
@@ -225,14 +225,14 @@ function updateAllCategorySelects() {
     document.getElementById("dbProdCategory"),
     document.getElementById("newProdCategory"),
   ];
-  const names = getCategoryNames();
+  const cats = getCategories();
   selects.forEach((sel) => {
     if (!sel) return;
     const current = sel.value;
-    sel.innerHTML = names
-      .map((n) => `<option value="${n}">${n}</option>`)
+    sel.innerHTML = cats
+      .map((c) => `<option value="${c.name}">${c.emoji} ${c.name}</option>`)
       .join("");
-    if (names.includes(current)) sel.value = current;
+    if (cats.some((c) => c.name === current)) sel.value = current;
   });
 }
 
@@ -567,7 +567,7 @@ function renderShoppingList() {
                 ${cat ? `<span class="product-category-tag">${getCategoryEmoji(cat)} ${cat}</span>` : ""}
             </div>
             <div class="product-actions">
-                <button class="icon-btn" onclick="editShoppingItem(${i})">✏️</button>
+                <button class="icon-btn" onclick="editShoppingItem(${i})">️✏️</button>
                 <button class="icon-btn delete" onclick="deleteShoppingItem(${i})">🗑</button>
             </div>
         `;
@@ -703,7 +703,7 @@ function renderTakenList() {
                 </div>
             </div>
             <div class="product-actions">
-                <button class="icon-btn" onclick="editTakenItem(${i})">✏️</button>
+                <button class="icon-btn" onclick="editTakenItem(${i})">️✏️</button>
                 <button class="icon-btn delete" onclick="deleteTakenItem(${i})">🗑</button>
             </div>
         `;
@@ -872,9 +872,12 @@ function openDbProductModal(index = -1) {
   const title = document.getElementById("dbProductModalTitle");
   const nameInput = document.getElementById("dbProdName");
   const catSelect = document.getElementById("dbProdCategory");
-  catSelect.innerHTML = getCategoryNames()
-    .map((c) => `<option value="${c}">${c}</option>`)
+
+  // Popola select con emoji + nome
+  catSelect.innerHTML = getCategories()
+    .map((c) => `<option value="${c.name}">${c.emoji} ${c.name}</option>`)
     .join("");
+
   if (index >= 0) {
     const p = state.products[index];
     title.textContent = "Modifica Prodotto";
@@ -974,9 +977,13 @@ function openCreateNewProductModal(name) {
   pendingNewProductName = name;
   document.getElementById("newProdPreviewName").textContent = name;
   const catSelect = document.getElementById("newProdCategory");
-  catSelect.innerHTML = getCategoryNames()
-    .map((c) => `<option value="${c}">${c}</option>`)
+
+  // Popola select con emoji + nome
+  catSelect.innerHTML = getCategories()
+    .map((c) => `<option value="${c.name}">${c.emoji} ${c.name}</option>`)
     .join("");
+
+  // Se c'è una categoria pendente dal pulsante rapido, usala
   const quickInput = document.getElementById("quickAddInput");
   if (quickInput.dataset.pendingCategory) {
     catSelect.value = quickInput.dataset.pendingCategory;
@@ -1038,7 +1045,7 @@ function updateSupermarketLogo() {
   if (selectedSm && selectedSm.logo) {
     logoBox.innerHTML = `<img src="${selectedSm.logo}" alt="${selectedSm.name}">`;
   } else {
-    logoBox.innerHTML = '<span class="supermarket-logo-placeholder"></span>';
+    logoBox.innerHTML = '<span class="supermarket-logo-placeholder">🏪</span>';
   }
 }
 
