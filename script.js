@@ -769,11 +769,13 @@ function clearTaken() {
 function saveShopping() {
   if (!state.takenProducts || state.takenProducts.length === 0)
     return alert("Nessun prodotto da salvare");
+
   const total = state.takenProducts.reduce((sum, p) => {
     const dbProd = state.products.find((x) => x.name === p.name);
     const price = dbProd ? dbProd.prices[state.currentSupermarket] || 0 : 0;
     return sum + price * p.quantity;
   }, 0);
+
   state.archive.push({
     date: new Date().toISOString(),
     supermarket: state.currentSupermarket || "N/A",
@@ -786,11 +788,15 @@ function saveShopping() {
     }),
     total,
   });
+
+  // Svuota SOLO i prodotti presi, la lista rimane intatta
   state.takenProducts = [];
-  state.shoppingList = [];
+
   saveState();
   renderAll();
-  alert("Spesa salvata in archivio!");
+  alert(
+    "Spesa salvata in archivio! I prodotti non presi rimangono nella lista per la prossima volta.",
+  );
 }
 
 // ============ DATABASE PRODOTTI ============
