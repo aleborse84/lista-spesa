@@ -12,7 +12,7 @@
     <body>
         <div class="container">
             <header class="header">
-                <h1>Lista della Spesa</h1>
+                <h1>🛒 Lista della Spesa</h1>
                 <div class="supermarket-selector">
                     <label for="currentSupermarket">Supermercato:</label>
                     <select id="currentSupermarket">
@@ -51,7 +51,7 @@
                 <button class="tab-btn" data-tab="taken">📦 Presi</button>
                 <button class="tab-btn" data-tab="database">🗂️ Database</button>
                 <button class="tab-btn" data-tab="archive">📚 Archivio</button>
-                <button class="tab-btn" data-tab="settings">⚙️ Settings</button>
+                <button class="tab-btn" data-tab="settings">⚙️</button>
             </div>
 
             <!-- TAB LISTA SPESA -->
@@ -101,9 +101,9 @@
                         ✓ Rimuovi spuntati
                     </button>
                     <button id="clearListBtn" class="btn btn-danger">
-                        🗑 Svuota
+                        Svuota
                     </button>
-                    <button id="printBtn" class="btn btn-secondary">🖨️</button>
+                    <button id="printBtn" class="btn btn-secondary">️</button>
                 </div>
                 <div class="empty-state" id="emptyStateShopping">
                     <p>La tua lista è vuota. Cerca un prodotto sopra!</p>
@@ -121,13 +121,13 @@
                 </div>
                 <div class="action-buttons">
                     <button id="restoreAllBtn" class="btn btn-secondary">
-                        ↩️ Ripristina
+                        ️ Ripristina
                     </button>
                     <button id="clearTakenBtn" class="btn btn-danger">
-                        Svuota
+                        🗑 Svuota
                     </button>
                     <button id="saveShoppingBtn" class="btn btn-success">
-                        Salva Spesa
+                        💾 Salva Spesa
                     </button>
                 </div>
                 <div
@@ -146,7 +146,7 @@
                     <input
                         type="text"
                         id="dbSearch"
-                        placeholder=" Cerca prodotto..."
+                        placeholder="🔍 Cerca prodotto..."
                         class="db-search"
                     />
                     <button id="addDbProductBtn" class="btn btn-primary">
@@ -213,7 +213,7 @@
             <!-- TAB IMPOSTAZIONI -->
             <div class="tab-content" id="settingsTab">
                 <div class="settings-section">
-                    <h3>️ Categorie</h3>
+                    <h3>🏷️ Categorie</h3>
                     <div class="category-form">
                         <input
                             type="text"
@@ -517,6 +517,25 @@
                             id="editItemPrice"
                             min="0"
                             step="0.01"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label for="editItemDiscount"
+                            >Sconto (€):
+                            <small
+                                style="
+                                    color: var(--text-light);
+                                    font-weight: 400;
+                                "
+                                >es. 2x1, 3x2, offerta</small
+                            ></label
+                        >
+                        <input
+                            type="number"
+                            id="editItemDiscount"
+                            min="0"
+                            step="0.01"
+                            placeholder="0.00"
                         />
                     </div>
                 </div>

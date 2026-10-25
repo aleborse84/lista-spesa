@@ -1,8 +1,7 @@
 // Struttura dati:
 // state.products = [{ name, category, prices: { smName: price } }]  <- DATABASE
-// state.shoppingList = [{ name, quantity, unit }]  <- LISTA SPESA
-// state.takenProducts = [{ name, quantity, unit }]  <- PRESI
-
+// state.shoppingList = [{ name, quantity, unit, discount }]  <- LISTA SPESA
+// state.takenProducts = [{ name, quantity, unit, discount }]  <- PRESI
 let state = {
   products: [],
   shoppingList: [],
@@ -15,7 +14,7 @@ let state = {
 
 const DEFAULT_CATEGORIES = [
   { name: "Altri Prodotti", emoji: "📦" },
-  { name: "Affettati", emoji: "🥓" },
+  { name: "Affettati", emoji: "" },
   { name: "Bagno", emoji: "🛁" },
   { name: "Bevande", emoji: "🍺" },
   { name: "Carne", emoji: "🥩" },
@@ -26,7 +25,7 @@ const DEFAULT_CATEGORIES = [
   { name: "Cucina", emoji: "🍳" },
   { name: "Dolci", emoji: "🍬" },
   { name: "Formaggi", emoji: "🧀" },
-  { name: "Frutta", emoji: "🍎" },
+  { name: "Frutta", emoji: "" },
   { name: "Igiene Personale", emoji: "🧴" },
   { name: "Latticini", emoji: "🥛" },
   { name: "Pane", emoji: "🥖" },
@@ -46,7 +45,6 @@ function getCategories() {
     state.categories = [...DEFAULT_CATEGORIES];
     saveState();
   }
-  // Normalizza nomi (trim) e ordina alfabeticamente
   state.categories.forEach((c) => {
     c.name = (c.name || "").trim();
   });
@@ -60,6 +58,15 @@ function getCategoryNames() {
 function getCategoryEmoji(catName) {
   const cat = getCategories().find((c) => c.name === catName);
   return cat ? cat.emoji : "";
+}
+
+// Calcola il prezzo finale di un prodotto (prezzo × qty - sconto, minimo 0)
+function calcFinalPrice(product) {
+  const dbProd = state.products.find((x) => x.name === product.name);
+  const price = dbProd ? dbProd.prices[state.currentSupermarket] || 0 : 0;
+  const subtotal = price * (product.quantity || 1);
+  const discount = product.discount || 0;
+  return Math.max(0, subtotal - discount);
 }
 
 function ensureStateIntegrity() {
@@ -102,17 +109,23 @@ function ensureStateIntegrity() {
     if (!p.quantity) p.quantity = 1;
     if (!p.unit) p.unit = "pz";
     if (!p.name) p.name = "Prodotto sconosciuto";
+    if (typeof p.discount !== "number") p.discount = 0;
   });
   state.takenProducts.forEach((p) => {
     if (!p.quantity) p.quantity = 1;
     if (!p.unit) p.unit = "pz";
     if (!p.name) p.name = "Prodotto sconosciuto";
+    if (typeof p.discount !== "number") p.discount = 0;
   });
   state.archive.forEach((item) => {
     if (!item.date) item.date = new Date().toISOString();
     if (!item.supermarket) item.supermarket = "N/A";
     if (!Array.isArray(item.products)) item.products = [];
     if (typeof item.total !== "number") item.total = 0;
+    if (typeof item.totalDiscount !== "number") item.totalDiscount = 0;
+    item.products.forEach((p) => {
+      if (typeof p.discount !== "number") p.discount = 0;
+    });
   });
 }
 
@@ -126,14 +139,7 @@ function renderCategoriesSettings() {
     const realIdx = state.categories.findIndex((c) => c.name === cat.name);
     const li = document.createElement("li");
     li.className = "category-setting-item";
-    li.innerHTML = `
-            <span class="category-emoji">${cat.emoji}</span>
-            <span class="category-name">${cat.name}</span>
-            <div class="sm-actions">
-                <button class="icon-btn" onclick="editCategory(${realIdx})" title="Modifica">✏️</button>
-                <button class="icon-btn delete" onclick="deleteCategory(${realIdx})" title="Elimina">🗑</button>
-            </div>
-        `;
+    li.innerHTML = `<span class="category-emoji">${cat.emoji}</span> <span class="category-name">${cat.name}</span> <div class="sm-actions"> <button class="icon-btn" onclick="editCategory(${realIdx})" title="Modifica">✏️</button> <button class="icon-btn delete" onclick="deleteCategory(${realIdx})" title="Elimina">🗑</button> </div>`;
     list.appendChild(li);
   });
 }
@@ -305,7 +311,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function initUI() {
-  // Tabs
   document.querySelectorAll(".tab-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       document
@@ -320,7 +325,6 @@ function initUI() {
     });
   });
 
-  // Listener pulsanti azione (FUORI dal loop dei tab!)
   document
     .getElementById("saveShoppingItemBtn")
     .addEventListener("click", saveShoppingItemEdit);
@@ -331,7 +335,6 @@ function initUI() {
     .getElementById("saveEditCategoryBtn")
     .addEventListener("click", saveEditCategory);
 
-  // Supermercato
   document
     .getElementById("currentSupermarket")
     .addEventListener("change", (e) => {
@@ -341,14 +344,12 @@ function initUI() {
       renderAll();
     });
 
-  // Persone
   document.getElementById("peopleCount").addEventListener("input", (e) => {
     state.peopleCount = parseInt(e.target.value) || 1;
     saveState();
     updateTotals();
   });
 
-  // Quick add (autocomplete)
   const quickInput = document.getElementById("quickAddInput");
   const quickList = document.getElementById("autocompleteList");
   quickInput.addEventListener("input", () => {
@@ -408,7 +409,6 @@ function initUI() {
     openCreateNewProductModal(name);
   });
 
-  // Azioni lista
   document
     .getElementById("clearCheckedBtn")
     .addEventListener("click", clearChecked);
@@ -417,7 +417,6 @@ function initUI() {
     .getElementById("printBtn")
     .addEventListener("click", () => window.print());
 
-  // Presi
   document
     .getElementById("restoreAllBtn")
     .addEventListener("click", restoreAll);
@@ -428,7 +427,6 @@ function initUI() {
     .getElementById("saveShoppingBtn")
     .addEventListener("click", saveShopping);
 
-  // Database
   document
     .getElementById("addDbProductBtn")
     .addEventListener("click", () => openDbProductModal());
@@ -437,7 +435,6 @@ function initUI() {
     .getElementById("saveDbProductBtn")
     .addEventListener("click", saveDbProduct);
 
-  // Impostazioni
   document
     .getElementById("addSupermarketBtn")
     .addEventListener("click", addSupermarket);
@@ -449,7 +446,6 @@ function initUI() {
     );
   document.getElementById("importFile").addEventListener("change", importData);
 
-  // Archivio
   document
     .getElementById("filterMonth")
     .addEventListener("change", renderArchive);
@@ -460,7 +456,6 @@ function initUI() {
     .getElementById("confirmArchiveEditBtn")
     .addEventListener("click", saveArchiveEdit);
 
-  // Supermercati - Logo
   document.getElementById("logoMethodFileBtn").addEventListener("click", () => {
     document.getElementById("logoMethodFileBtn").classList.add("active");
     document.getElementById("logoMethodUrlBtn").classList.remove("active");
@@ -496,12 +491,10 @@ function initUI() {
     .getElementById("editSmLogoFile")
     .addEventListener("change", handleLogoUpload);
 
-  // Crea nuovo prodotto
   document
     .getElementById("confirmCreateProdBtn")
     .addEventListener("click", confirmCreateNewProduct);
 
-  // Chiudi modal
   document.querySelectorAll("[data-close]").forEach((btn) => {
     btn.addEventListener("click", () => closeModal(btn.dataset.close));
   });
@@ -534,7 +527,13 @@ function addToShoppingList(productName) {
   const unit = document.getElementById("quickAddUnit").value;
   const existing = state.shoppingList.find((p) => p.name === productName);
   if (existing) existing.quantity += qty;
-  else state.shoppingList.push({ name: productName, quantity: qty, unit });
+  else
+    state.shoppingList.push({
+      name: productName,
+      quantity: qty,
+      unit,
+      discount: 0,
+    });
   saveState();
   renderShoppingList();
   updateTotals();
@@ -554,6 +553,10 @@ function renderShoppingList() {
     const dbProd = state.products.find((x) => x.name === p.name);
     const price = dbProd ? dbProd.prices[state.currentSupermarket] || 0 : 0;
     const cat = dbProd ? dbProd.category : "";
+    const discount = p.discount || 0;
+    const subtotal = price * p.quantity;
+    const finalPrice = Math.max(0, subtotal - discount);
+
     const li = document.createElement("li");
     li.className = "product-item";
     li.innerHTML = `
@@ -562,12 +565,14 @@ function renderShoppingList() {
                 <div class="product-name">${escapeHtml(p.name)}</div>
                 <div class="product-details">
                     <span>${p.quantity} ${p.unit}</span>
-                    <span class="product-price">€${(price * p.quantity).toFixed(2)}</span>
+                    <span class="product-price">€${subtotal.toFixed(2)}</span>
+                    ${discount > 0 ? `<span class="product-discount">-€${discount.toFixed(2)}</span>` : ""}
+                    ${discount > 0 ? `<span class="product-final-price">= €${finalPrice.toFixed(2)}</span>` : ""}
                 </div>
                 ${cat ? `<span class="product-category-tag">${getCategoryEmoji(cat)} ${cat}</span>` : ""}
             </div>
             <div class="product-actions">
-                <button class="icon-btn" onclick="editShoppingItem(${i})">️✏️</button>
+                <button class="icon-btn" onclick="editShoppingItem(${i})">✏️</button>
                 <button class="icon-btn delete" onclick="deleteShoppingItem(${i})">🗑</button>
             </div>
         `;
@@ -590,6 +595,7 @@ function editShoppingItem(i) {
   document.getElementById("editItemQty").value = p.quantity;
   document.getElementById("editItemUnit").value = p.unit;
   document.getElementById("editItemPrice").value = currentPrice;
+  document.getElementById("editItemDiscount").value = p.discount || 0;
   document.getElementById("editItemSmName").textContent =
     state.currentSupermarket || "supermercato";
   openModal("editShoppingItemModal");
@@ -602,6 +608,8 @@ function saveShoppingItemEdit() {
   const newUnit = document.getElementById("editItemUnit").value;
   const newPrice =
     parseFloat(document.getElementById("editItemPrice").value) || 0;
+  const newDiscount =
+    parseFloat(document.getElementById("editItemDiscount").value) || 0;
   if (!newName) return alert("Inserisci il nome del prodotto");
   if (isNaN(newQty) || newQty <= 0) return alert("Quantità non valida");
   const oldName = state.shoppingList[editingShoppingIndex].name;
@@ -610,6 +618,7 @@ function saveShoppingItemEdit() {
     name: newName,
     quantity: newQty,
     unit: newUnit,
+    discount: newDiscount,
   };
   if (oldName !== newName) {
     state.takenProducts.forEach((p) => {
@@ -691,6 +700,9 @@ function renderTakenList() {
   state.takenProducts.forEach((p, i) => {
     const dbProd = state.products.find((x) => x.name === p.name);
     const price = dbProd ? dbProd.prices[state.currentSupermarket] || 0 : 0;
+    const discount = p.discount || 0;
+    const subtotal = price * p.quantity;
+    const finalPrice = Math.max(0, subtotal - discount);
     const li = document.createElement("li");
     li.className = "product-item";
     li.innerHTML = `
@@ -699,11 +711,13 @@ function renderTakenList() {
                 <div class="product-name">${escapeHtml(p.name)}</div>
                 <div class="product-details">
                     <span>${p.quantity} ${p.unit}</span>
-                    <span class="product-price">€${(price * p.quantity).toFixed(2)}</span>
+                    <span class="product-price">€${subtotal.toFixed(2)}</span>
+                    ${discount > 0 ? `<span class="product-discount">-€${discount.toFixed(2)}</span>` : ""}
+                    ${discount > 0 ? `<span class="product-final-price">= €${finalPrice.toFixed(2)}</span>` : ""}
                 </div>
             </div>
             <div class="product-actions">
-                <button class="icon-btn" onclick="editTakenItem(${i})">️✏️</button>
+                <button class="icon-btn" onclick="editTakenItem(${i})">✏️</button>
                 <button class="icon-btn delete" onclick="deleteTakenItem(${i})">🗑</button>
             </div>
         `;
@@ -716,14 +730,83 @@ function renderTakenList() {
 
 function editTakenItem(i) {
   const p = state.takenProducts[i];
-  const newQty = prompt("Quantità:", p.quantity);
-  if (newQty === null) return;
-  const q = parseFloat(newQty);
-  if (isNaN(q) || q <= 0) return;
-  p.quantity = q;
+  const dbProd = state.products.find((x) => x.name === p.name);
+  const currentPrice = dbProd
+    ? dbProd.prices[state.currentSupermarket] || 0
+    : 0;
+
+  // Usa un modal dedicato per i presi (riuso lo stesso modal)
+  editingShoppingIndex = i;
+  document.getElementById("editItemName").value = p.name;
+  document.getElementById("editItemQty").value = p.quantity;
+  document.getElementById("editItemUnit").value = p.unit;
+  document.getElementById("editItemPrice").value = currentPrice;
+  document.getElementById("editItemDiscount").value = p.discount || 0;
+  document.getElementById("editItemSmName").textContent =
+    state.currentSupermarket || "supermercato";
+  document.getElementById("dbProductModalTitle").textContent =
+    "Modifica Prodotto Preso";
+  openModal("editShoppingItemModal");
+}
+
+// Override per gestire sia lista che presi
+let editingListType = "shopping";
+
+function saveShoppingItemEdit() {
+  if (editingShoppingIndex < 0) return;
+  const newName = document.getElementById("editItemName").value.trim();
+  const newQty = parseFloat(document.getElementById("editItemQty").value);
+  const newUnit = document.getElementById("editItemUnit").value;
+  const newPrice =
+    parseFloat(document.getElementById("editItemPrice").value) || 0;
+  const newDiscount =
+    parseFloat(document.getElementById("editItemDiscount").value) || 0;
+  if (!newName) return alert("Inserisci il nome del prodotto");
+  if (isNaN(newQty) || newQty <= 0) return alert("Quantità non valida");
+
+  const list =
+    editingListType === "shopping" ? state.shoppingList : state.takenProducts;
+  const otherList =
+    editingListType === "shopping" ? state.takenProducts : state.shoppingList;
+  const oldName = list[editingShoppingIndex].name;
+
+  list[editingShoppingIndex] = {
+    ...list[editingShoppingIndex],
+    name: newName,
+    quantity: newQty,
+    unit: newUnit,
+    discount: newDiscount,
+  };
+
+  if (oldName !== newName) {
+    otherList.forEach((p) => {
+      if (p.name === oldName) p.name = newName;
+    });
+    let dbProd = state.products.find((p) => p.name === newName);
+    if (!dbProd) {
+      const oldDbProd = state.products.find((p) => p.name === oldName);
+      if (oldDbProd) {
+        oldDbProd.name = newName;
+        dbProd = oldDbProd;
+      } else {
+        dbProd = { name: newName, category: "Altri Prodotti", prices: {} };
+        state.products.push(dbProd);
+      }
+    }
+    if (state.currentSupermarket)
+      dbProd.prices[state.currentSupermarket] = newPrice;
+  } else {
+    let dbProd = state.products.find((p) => p.name === newName);
+    if (!dbProd) {
+      dbProd = { name: newName, category: "Altri Prodotti", prices: {} };
+      state.products.push(dbProd);
+    }
+    if (state.currentSupermarket)
+      dbProd.prices[state.currentSupermarket] = newPrice;
+  }
   saveState();
-  renderTakenList();
-  updateTotals();
+  renderAll();
+  closeModal("editShoppingItemModal");
 }
 
 function deleteTakenItem(i) {
@@ -769,13 +852,16 @@ function clearTaken() {
 function saveShopping() {
   if (!state.takenProducts || state.takenProducts.length === 0)
     return alert("Nessun prodotto da salvare");
-
   const total = state.takenProducts.reduce((sum, p) => {
     const dbProd = state.products.find((x) => x.name === p.name);
     const price = dbProd ? dbProd.prices[state.currentSupermarket] || 0 : 0;
-    return sum + price * p.quantity;
+    const discount = p.discount || 0;
+    return sum + Math.max(0, price * p.quantity - discount);
   }, 0);
-
+  const totalDiscount = state.takenProducts.reduce(
+    (sum, p) => sum + (p.discount || 0),
+    0,
+  );
   state.archive.push({
     date: new Date().toISOString(),
     supermarket: state.currentSupermarket || "N/A",
@@ -784,18 +870,17 @@ function saveShopping() {
       return {
         ...p,
         price: dbProd ? dbProd.prices[state.currentSupermarket] || 0 : 0,
+        discount: p.discount || 0,
       };
     }),
     total,
+    totalDiscount,
   });
-
-  // Svuota SOLO i prodotti presi, la lista rimane intatta
   state.takenProducts = [];
-
   saveState();
   renderAll();
   alert(
-    "Spesa salvata in archivio! I prodotti non presi rimangono nella lista per la prossima volta.",
+    "Spesa salvata in archivio! I prodotti non presi rimangono nella lista.",
   );
 }
 
@@ -878,12 +963,9 @@ function openDbProductModal(index = -1) {
   const title = document.getElementById("dbProductModalTitle");
   const nameInput = document.getElementById("dbProdName");
   const catSelect = document.getElementById("dbProdCategory");
-
-  // Popola select con emoji + nome
   catSelect.innerHTML = getCategories()
     .map((c) => `<option value="${c.name}">${c.emoji} ${c.name}</option>`)
     .join("");
-
   if (index >= 0) {
     const p = state.products[index];
     title.textContent = "Modifica Prodotto";
@@ -983,13 +1065,9 @@ function openCreateNewProductModal(name) {
   pendingNewProductName = name;
   document.getElementById("newProdPreviewName").textContent = name;
   const catSelect = document.getElementById("newProdCategory");
-
-  // Popola select con emoji + nome
   catSelect.innerHTML = getCategories()
     .map((c) => `<option value="${c.name}">${c.emoji} ${c.name}</option>`)
     .join("");
-
-  // Se c'è una categoria pendente dal pulsante rapido, usala
   const quickInput = document.getElementById("quickAddInput");
   if (quickInput.dataset.pendingCategory) {
     catSelect.value = quickInput.dataset.pendingCategory;
@@ -1006,13 +1084,18 @@ function confirmCreateNewProduct() {
   state.products.push({ name: pendingNewProductName, category, prices });
   const qty = parseFloat(document.getElementById("quickAddQty").value) || 1;
   const unit = document.getElementById("quickAddUnit").value;
-  state.shoppingList.push({ name: pendingNewProductName, quantity: qty, unit });
+  state.shoppingList.push({
+    name: pendingNewProductName,
+    quantity: qty,
+    unit,
+    discount: 0,
+  });
   saveState();
   renderAll();
   closeModal("createNewProductModal");
   document.getElementById("quickAddInput").value = "";
   document.getElementById("quickAddInput").placeholder =
-    "🔍 Cerca prodotto nel database...";
+    " Cerca prodotto nel database...";
   delete document.getElementById("quickAddInput").dataset.pendingCategory;
 }
 
@@ -1020,17 +1103,15 @@ function confirmCreateNewProduct() {
 function updateTotals() {
   const listTotal = state.shoppingList.reduce((sum, p) => {
     const dbProd = state.products.find((x) => x.name === p.name);
-    return (
-      sum +
-      (dbProd ? dbProd.prices[state.currentSupermarket] || 0 : 0) * p.quantity
-    );
+    const price = dbProd ? dbProd.prices[state.currentSupermarket] || 0 : 0;
+    const discount = p.discount || 0;
+    return sum + Math.max(0, price * p.quantity - discount);
   }, 0);
   const takenTotal = state.takenProducts.reduce((sum, p) => {
     const dbProd = state.products.find((x) => x.name === p.name);
-    return (
-      sum +
-      (dbProd ? dbProd.prices[state.currentSupermarket] || 0 : 0) * p.quantity
-    );
+    const price = dbProd ? dbProd.prices[state.currentSupermarket] || 0 : 0;
+    const discount = p.discount || 0;
+    return sum + Math.max(0, price * p.quantity - discount);
   }, 0);
   document.getElementById("totalAmount").textContent =
     `€${listTotal.toFixed(2)}`;
@@ -1219,11 +1300,16 @@ function renderArchive() {
         smObj && smObj.logo
           ? `<img src="${smObj.logo}" class="archive-sm-logo">`
           : "";
+      const discountHtml =
+        item.totalDiscount > 0
+          ? `<div class="archive-discount"> Sconto totale: -€${item.totalDiscount.toFixed(2)}</div>`
+          : "";
       li.innerHTML = `
             <div class="archive-header">
                 <span class="archive-supermarket">${logoHtml}${item.supermarket || "N/A"}</span>
                 <span class="archive-date">${d}</span>
             </div>
+            ${discountHtml}
             <div class="archive-total">Totale: €${item.total.toFixed(2)}</div>
             <div class="archive-products">${prods}</div>
             <div class="archive-actions">
@@ -1261,7 +1347,8 @@ function editArchiveItem(idx) {
             <input type="text" name="name" value="${escapeHtml(p.name)}" data-i="${i}" style="flex:2">
             <input type="number" name="qty" value="${p.quantity}" step="0.1" data-i="${i}" style="flex:1;max-width:60px">
             <input type="number" name="price" value="${p.price}" step="0.01" data-i="${i}" style="flex:1;max-width:70px">
-            <button class="icon-btn delete" onclick="removeArchiveProd(${idx}, ${i})"></button>
+            <input type="number" name="discount" value="${p.discount || 0}" step="0.01" data-i="${i}" style="flex:1;max-width:70px" placeholder="Sconto">
+            <button class="icon-btn delete" onclick="removeArchiveProd(${idx}, ${i})">🗑</button>
         `;
     list.appendChild(div);
   });
@@ -1292,6 +1379,7 @@ function saveArchiveEdit() {
     item.date = newDate.toISOString();
   }
   item.supermarket = document.getElementById("archiveSupermarket").value;
+  let totalDiscount = 0;
   document
     .querySelectorAll("#archiveProductsList .archive-product-item")
     .forEach((div) => {
@@ -1301,8 +1389,15 @@ function saveArchiveEdit() {
         parseFloat(div.querySelector('input[name="qty"]').value) || 0;
       item.products[i].price =
         parseFloat(div.querySelector('input[name="price"]').value) || 0;
+      item.products[i].discount =
+        parseFloat(div.querySelector('input[name="discount"]').value) || 0;
+      totalDiscount += item.products[i].discount;
     });
-  item.total = item.products.reduce((sum, p) => sum + p.price * p.quantity, 0);
+  item.totalDiscount = totalDiscount;
+  item.total = item.products.reduce(
+    (sum, p) => sum + Math.max(0, p.price * p.quantity - (p.discount || 0)),
+    0,
+  );
   saveState();
   renderArchive();
   closeModal("editArchiveModal");
@@ -1408,6 +1503,7 @@ function importData(e) {
                 name: it.name,
                 quantity: parseFloat(it.qty) || 1,
                 unit: "pz",
+                discount: 0,
               });
               if (it.price && newData.currentSupermarket) {
                 let prod = newData.products.find((p) => p.name === it.name);
@@ -1432,6 +1528,7 @@ function importData(e) {
                 name: it.name,
                 quantity: parseFloat(it.qty) || 1,
                 unit: "pz",
+                discount: 0,
               });
             });
         }
